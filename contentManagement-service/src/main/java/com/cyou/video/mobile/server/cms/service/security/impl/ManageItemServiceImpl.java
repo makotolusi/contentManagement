@@ -1,6 +1,18 @@
 package com.cyou.video.mobile.server.cms.service.security.impl;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+
+import com.cyou.video.mobile.server.cms.model.VerifyException;
+import com.cyou.video.mobile.server.cms.model.security.ManageItem;
+import com.cyou.video.mobile.server.cms.service.security.ManageItemService;
+import com.cyou.video.mobile.server.common.Constants;
 
 /**
  * CMS管理项业务实现
@@ -8,30 +20,29 @@ import org.springframework.stereotype.Service;
  * @author jyz
  */
 @Service("manageItemService")
-public class ManageItemServiceImpl {//implements ManageItemService {
+public class ManageItemServiceImpl implements ManageItemService {
 
-//  private ManageItemDao manageItemDao;
-//
-//  private OperationDao operationDao;
 
-//  @Autowired
-//  private MongoOperations mongoTemplate;
+  @Autowired
+  private MongoOperations mongoTemplate;
 //
 //  @Override
-//  public List<ManageItem> listManageItem() throws Exception {
-//    return mongoTemplate.findAll(ManageItem.class);
-//  }
+  public List<ManageItem> listManageItem() throws Exception {
+    Query q=new Query();
+    q.with(new Sort(Direction.ASC, "orderNum"));
+    return mongoTemplate.find(q,ManageItem.class);
+  }
 //
-//  @Override
-//  public void createManageItem(ManageItem manageItem) throws Exception {
-//    if(manageItem == null) {
-//      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
-//          Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_manageItem");
-//    }
-//    List<ManageItem> list = mongoTemplate.findAll(ManageItem.class);
-//    manageItem.setOrderNum(list.size() + 1); // 新增加的管理项的顺序放到最后
-//    mongoTemplate.save(manageItem);
-//  }
+  @Override
+  public void createManageItem(ManageItem manageItem) throws Exception {
+    if(manageItem == null) {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
+          Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_manageItem");
+    }
+    List<ManageItem> list = mongoTemplate.findAll(ManageItem.class);
+    manageItem.setOrderNum(list.size() + 1); // 新增加的管理项的顺序放到最后
+    mongoTemplate.save(manageItem);
+  }
 //
 //  @Override
 //  public void updateManageItem(ManageItem manageItem) throws Exception {

@@ -3,6 +3,7 @@ package com.cyou.video.mobile.server.cms.model.security;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,26 +20,28 @@ import com.cyou.video.mobile.server.common.Constants;
 
 /**
  * CMS管理项类
+ * 
  * @author lusi
  */
 @Document(collection = "Security_ManageItem")
-public class ManageItem {
+public class ManageItem implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-  private static final long serialVersionUID = -5138227964798874804L;
+  public static final String COLLECTION_NAME = "Security_ManageItem";
 
-  public static final String COLLECTION_NAME="Security_ManageItem";
   @Id
-  private String id; //管理项id
+  private String id; // 管理项id
 
-  private String name; //管理项名称
+  private String name; // 管理项名称
 
-  private String url = ""; //管理项地址
+  private String url = ""; // 管理项地址
 
-  private Constants.STATUS status = Constants.STATUS.ON; //管理项状态
-  
+  private Constants.STATUS status = Constants.STATUS.ON; // 管理项状态
+
+  @DBRef
   private List<Operation> operations;
-  
-  private int orderNum; //管理项顺序
+
+  private int orderNum; // 管理项顺序
 
   public String getId() {
     return id;

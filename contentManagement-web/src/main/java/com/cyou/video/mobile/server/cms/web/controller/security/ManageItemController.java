@@ -31,6 +31,7 @@ public class ManageItemController {
 
   private Logger logger = LoggerFactory.getLogger(ManageItemController.class);
 
+  @Autowired
   private ManageItemService manageItemService;
 
   @RequestMapping(value = "/list", method = RequestMethod.POST)

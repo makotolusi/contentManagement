@@ -1,10 +1,10 @@
 package com.cyou.video.mobile.server.cms.model.security;
 
-
 import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -17,8 +17,8 @@ public class Operation {
 
   private static final long serialVersionUID = -9031731862085772713L;
 
-  private int orderId; // 操作项id
-
+  @Id
+  private String id; // 操作项id
 
   private String name; // 操作项名称
 
@@ -29,17 +29,16 @@ public class Operation {
   // private int assignable = Constants.STATUS.TRUE.getValue(); //是否可配置
   private List<String> roleIds;
 
-
   public String getName() {
     return name;
   }
 
-  public int getOrderId() {
-    return orderId;
+  public String getId() {
+    return id;
   }
 
-  public void setOrderId(int orderId) {
-    this.orderId = orderId;
+  public void setId(String id) {
+    this.id = id;
   }
 
   public void setName(String name) {
@@ -72,7 +71,6 @@ public class Operation {
 
   public String toString() {
     ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE);
-    builder.append("id", orderId);
     return builder.toString();
   }
 }

@@ -6,12 +6,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.cyou.video.mobile.server.cms.model.VerifyException;
 import com.cyou.video.mobile.server.cms.model.security.ManageItem;
@@ -43,32 +41,18 @@ public class OperationServiceImpl implements OperationService {
   }
 
   @Override
-  public List<Operation> listOperationOfRole(String roleId) throws Exception {
-    List<Operation> all = new ArrayList<Operation>();
-    Aggregation agg = Aggregation.newAggregation(Aggregation.match(new Criteria("operations.roleIds").all(roleId)),
-        Aggregation.unwind("operations"));
-    AggregationResults<ManageItem> results = mongoTemplate.aggregate(agg, ManageItem.COLLECTION_NAME, ManageItem.class);
-    List<ManageItem> manageItems = results.getMappedResults();
-    for(Iterator iterator = manageItems.iterator(); iterator.hasNext();) {
-      ManageItem manageItem = (ManageItem) iterator.next();
-      List<Operation> ops = manageItem.getOperations();
-      if(ops != null) 
-        all.addAll(ops);
+  public List<Operation> listOperationOfRole(String roleId, int out) throws Exception {
+    Query q = null;
+    if(out == 1)
+      q = new Query(new Criteria("roleIds").nin(roleId));
+    else if(out == 0) {
+      if(StringUtils.isEmpty(roleId))
+        return new ArrayList<Operation>();
+      else
+        q = new Query(new Criteria("roleIds").all(roleId));
     }
-    return all;
-  }
-
-  @Override
-  public List<Operation> listOperationExcludeRole(String roleId) throws Exception {
-    List<ManageItem> manageItems = mongoTemplate.find(new Query(new Criteria("operations.roleIds").all(roleId)),
-        ManageItem.class);
-    List<Operation> all = new ArrayList<Operation>();
-    for(Iterator iterator = manageItems.iterator(); iterator.hasNext();) {
-      ManageItem manageItem = (ManageItem) iterator.next();
-      List<Operation> ops = manageItem.getOperations();
-      if(ops != null) all.addAll(ops);
-    }
-    return all;
+    else if(out == 3) q = new Query();
+    return mongoTemplate.find(q, Operation.class);
   }
 
   @Override
@@ -80,13 +64,14 @@ public class OperationServiceImpl implements OperationService {
     // relation
     ManageItem manageItem = mongoTemplate.findOne(new Query(new Criteria("id").is(operation.getManageItemId())),
         ManageItem.class);
+    mongoTemplate.insert(operation);
     List<Operation> ops = manageItem.getOperations();
+    Operation rel = new Operation();
+    rel.setId(operation.getId());
     if(ops == null) {
       ops = new ArrayList<Operation>();
     }
-    int order = ops.size();
-    operation.setOrderId(order + 1);
-    ops.add(operation);
+    ops.add(rel);
     manageItem.setOperations(ops);
     mongoTemplate.save(manageItem);// 更新菜单下的功能列表
   }
@@ -112,13 +97,15 @@ public class OperationServiceImpl implements OperationService {
   }
 
   @Override
-  public void addRole(String manageItemId, int orderId, String roleId) throws Exception {
-    ManageItem manageItem = mongoTemplate.findOne(new Query(new Criteria("operations.manageItemId").is(manageItemId)
-        .and("operations.orderId").is(orderId)), ManageItem.class);
-    List<String> roleIds = manageItem.getOperations().get(0).getRoleIds();
-    if(roleIds == null) roleIds = new ArrayList<String>();
-    roleIds.add(roleId);
-    manageItem.getOperations().get(0).setRoleIds(roleIds);
-    mongoTemplate.save(manageItem);
+  public void addRole(String[] ids, String roleId) throws Exception {
+    List<Operation> ops = mongoTemplate.find(new Query(new Criteria("_id").in(ids)), Operation.class);
+    for(Iterator iterator = ops.iterator(); iterator.hasNext();) {
+      Operation op = (Operation) iterator.next();
+      List<String> roleIds = op.getRoleIds();
+      if(roleIds == null) roleIds = new ArrayList<String>();
+      roleIds.add(roleId);
+      op.setRoleIds(roleIds);
+      mongoTemplate.save(op);
+    }
   }
 }

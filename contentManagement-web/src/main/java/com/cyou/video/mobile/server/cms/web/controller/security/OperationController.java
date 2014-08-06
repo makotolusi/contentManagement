@@ -53,34 +53,21 @@ public class OperationController {
 
   @RequestMapping(value = "/listRoleOperation", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap listRoleOperation(@RequestParam String roleId,HttpServletRequest request, ModelMap model) {
+  public ModelMap listRoleOperation(@RequestParam
+  String roleId,@RequestParam Integer out,HttpServletRequest request, ModelMap model) {
     try {
-      List<Operation> list = operationService.listOperationOfRole(roleId);
+      List<Operation> list = operationService.listOperationOfRole(roleId,out);
       model.addAttribute("data", list);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
+      e.printStackTrace();
       logger.error("[method: listOperation()] Get operation list : error! " + e.getMessage(), e);
       model.addAttribute("message", e.getMessage());
     }
     return model;
   }
 
-//  @RequestMapping(value = "/listRoleOperation", method = RequestMethod.POST)
-//  @ResponseBody
-//  public ModelMap listRoleOperation(@RequestParam String roleId,HttpServletRequest request, ModelMap model) {
-//    try {
-//      List<Operation> list = operationService.listOperationOfRole(roleId);
-//      model.addAttribute("data", list);
-//      model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-//    }
-//    catch(Exception e) {
-//      logger.error("[method: listOperation()] Get operation list : error! " + e.getMessage(), e);
-//      model.addAttribute("message", e.getMessage());
-//    }
-//    return model;
-//  }
-  
   @LogAnno(type = Constants.LOG_TYPE_ADD, desc = "创建新操作项", modelName = "操作项管理")
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseBody
@@ -143,11 +130,8 @@ public class OperationController {
   public ModelMap addRoles(HttpServletRequest request, ModelMap model) {
     try {
       String roleId = request.getParameter("roleId");
-      String[] orderIds = request.getParameterValues("orderIds");
-      String[] manageItemIds = request.getParameterValues("manageItemIds");
-      for(int i = 0; i < manageItemIds.length; i++) {
-        operationService.addRole(manageItemIds[i], Integer.parseInt(orderIds[i]), roleId);
-      }
+      String[] ids = request.getParameterValues("ids");
+      operationService.addRole(ids, roleId);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

@@ -46,7 +46,7 @@ public interface OperationService {
    * @param roleId
    * @throws Exception
    */
-  void addRole(String manageItemId, int orderId, String roleId) throws Exception;
+  void addRole(String[] ids, String roleId) throws Exception;
 
   /**
    * 角色权限
@@ -54,13 +54,6 @@ public interface OperationService {
    * @return
    * @throws Exception
    */
-  List<Operation> listOperationOfRole(String roleId) throws Exception;
+  List<Operation> listOperationOfRole(String roleId, int out) throws Exception;
 
-  /**
-   * 权限以外的菜单项
-   * @param roleId
-   * @return
-   * @throws Exception
-   */
-  List<Operation> listOperationExcludeRole(String roleId) throws Exception;
 }
