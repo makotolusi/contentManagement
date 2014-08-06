@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="content management system rest app">
+        <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
+        <wb-resource deploy-path="/" source-path="/"/>
+        <dependent-module archiveName="video-mobile-cms-dao-1.3-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/content management system dao/content management system dao">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="video-mobile-cms-dao-mongo-1.3-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/content management system dao mongo/content management system dao mongo">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="video-mobile-common-utils-1.3-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/common utils project/common utils project">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <property name="java-output-path" value="/content management system rest app/src/main/webapp/WEB-INF/classes"/>
+        <property name="context-root" value="/video-mobile-cms-rest"/>
+    </wb-module>
+</project-modules>

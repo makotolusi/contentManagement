@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+  <!-- 自定义Jackson支持jaxb注解的objectMapper -->
+  <bean id="jacksonObjectMapper" class="com.cyou.video.mobile.server.common.utils.JacksonUtil" factory-method="getJsonMapper" />
+
+  <!-- annotation的方法映射适配器 -->
+  <bean id="annotationMethodHandlerAdapter" class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+    <property name="messageConverters">
+      <list>
+        <!-- 解析json或者xml请求数据，将json或者xml转换为java对象 -->
+        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" p:objectMapper-ref="jacksonObjectMapper" />
+        <!-- 可以增加其他数据类型,请参考spring的API -->
+        <bean class="org.springframework.http.converter.FormHttpMessageConverter" />
+        <bean class="org.springframework.http.converter.BufferedImageHttpMessageConverter" />
+        <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+        <bean class="org.springframework.http.converter.ResourceHttpMessageConverter" />
+      </list>
+    </property>
+  </bean>
+
+  <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+    <property name="defaultContentType" value="application/json" />
+    <property name="mediaTypes">
+      <map>
+        <entry key="json" value="application/json" />
+        <entry key="xml" value="application/xml" />
+      </map>
+    </property>
+    <property name="defaultViews">
+      <list>
+        <!-- 输出为JSON或者xml数据 -->
+        <bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" p:objectMapper-ref="jacksonObjectMapper"></bean>
+        <bean class="com.cyou.video.mobile.server.cms.rest.common.MappingJackson2JsonpView" p:objectMapper-ref="jacksonObjectMapper"></bean>
+        
+      </list>
+    </property>
+  </bean>
+</beans>

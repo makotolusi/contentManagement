@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
+  xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:util="http://www.springframework.org/schema/util" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+  http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+  <!-- CMS自动更新视频数据JOB -->
+  <bean id="syncDataJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.video.mobile.server.cms.job.operations.SyncDataJob"></property>
+  </bean>
+  <bean id="syncDataTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncDataJobDetail" />
+    <property name="cronExpression" value="0 0 0/3 * * ?" />
+  </bean>
+  <!-- CMS自动更新新闻数据JOB -->
+  <bean id="syncNewsDataJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.video.mobile.server.cms.job.operations.SyncNewsDataJob"></property>
+  </bean>
+  <bean id="syncNewsDataTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncNewsDataJobDetail" />
+    <property name="cronExpression" value="0 0 0/1 ? * *" />
+  </bean>
+  <!-- CMS发送邮件JOB -->
+  <bean id="mailJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.video.mobile.server.cms.job.sys.MailJob"></property>
+  </bean>
+  <bean id="mailTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="mailJobDetail" />
+    <property name="cronExpression" value="0 0/5 * * * ?" />
+  </bean>
+  <!-- 同步直播数据JOB -->
+  <!-- <bean id="videoLiveJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.video.mobile.server.cms.job.operations.SyncLiveJob"></property>
+  </bean>
+  <bean id="videoLiveTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="videoLiveJobDetail" />
+    <property name="cronExpression" value="0 0/5 * * * ?" />
+  </bean> -->
+  
+    <!-- 日志数据统计JOB  -->
+  <bean id="logCollectionStatisticDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.video.mobile.server.cms.job.collection.LogCollectionStatisticJob"></property>
+  </bean>
+  <bean id="logCollectionStatisticTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="logCollectionStatisticDetail" />
+    <property name="cronExpression" value="0 0 4 * * ?" />
+  </bean>
+ 
+  <bean id="popgameDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.popgame.SyncPopGameJob"></property>
+  </bean>
+  <bean id="popgameTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="popgameDetail" />
+    <property name="cronExpression" value="0 30 1 * * ?" />
+  </bean>
+  <bean id="popgameVideoPtDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.popgame.SyncPopGameVideoPtJob"></property>
+  </bean>
+  <bean id="popgameVideoPtTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="popgameVideoPtDetail" />
+    <property name="cronExpression" value="0 0 0/1 * * ?" />
+  </bean>
+  <bean id="syncStrategyPicDataJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.strategy.SyncStrategyPicDataJob"></property>
+  </bean>
+  <bean id="syncStrategyPicDataTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncStrategyPicDataJobDetail" />
+    <property name="cronExpression" value="0 0 0/2 * * ?" />
+  </bean>
+  <bean id="syncStrategyNewsDataJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.strategy.SyncStrategyNewsDataJob"></property>
+  </bean>
+  <bean id="syncStrategyNewsDataTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncStrategyNewsDataJobDetail" />
+    <property name="cronExpression" value="0 0 0/2 * * ?" />
+  </bean>
+  <bean id="syncStrategyVideoDataJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.strategy.SyncStrategyVideoDataJob"></property>
+  </bean>
+  <bean id="syncStrategyVideoDataTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncStrategyVideoDataJobDetail" />
+    <property name="cronExpression" value="0 0 0/3 * * ?" />
+  </bean>
+<!--   <bean id="syncMenuVideoPtDataJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.strategy.MenuVideoPlayTimesJob"></property>
+  </bean>
+  <bean id="syncMenuVideoPtDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncMenuVideoPtDataJobDetail" />
+    <property name="cronExpression" value="0 30 0/2 * * ?" />
+  </bean> -->
+  <bean id="deleteMenuBubbleJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.strategy.MenuBubbleJob"></property>
+  </bean>
+  <bean id="deleteMenuBubbleJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="deleteMenuBubbleJobDetail" />
+    <property name="cronExpression" value="0 0 1 * * ?" />
+  </bean>
+  <bean id="updateStrategySortJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.strategy.UpdateStrategySortJob"></property>
+  </bean>
+  <bean id="updateStrategySortJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="updateStrategySortJobDetail" />
+    <property name="cronExpression" value="0 0 0/1 * * ?" />
+  </bean>    
+    <bean id="syncHotwordJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <property name="jobClass" value="com.cyou.mbu.server.cms.job.hotword.SyncHotwordJob" />
+  </bean>
+  <bean id="syncHotwordJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <property name="jobDetail" ref="syncHotwordJobDetail" />
+    <property name="cronExpression" value="0 0 1 * * ?" />
+  </bean>
+  
+  <bean name="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <property name="schedulerContextAsMap">
+      <map>
+        <!-- spring 管理的service需要放到这里，才能够注入成功 -->
+        <description>schedulerContextAsMap</description>
+        <entry key="columnService" value-ref="columnService" />
+        <entry key="cmsDubboService" value-ref="cmsDubboService" />
+        <entry key="mailInfoService" value-ref="mailInfoService" />
+        <entry key="popGameContentService" value-ref="popGameContentService" />
+        <entry key="multiThreadExcuteService" value-ref="multiThreadExcuteService" />
+        <entry key="interfaceFactoryCreator" value-ref="interfaceFactoryCreator" />
+        <entry key="strategyQueryFilterService" value-ref="strategyQueryFilterService" />
+        <entry key="menuService" value-ref="menuService" />
+        <entry key="strategyVideoService" value-ref="strategyVideoService" />
+        <entry key="partnerDataInterfaceService" value-ref="partnerDataInterfaceService" />    
+        <entry key="strategyService" value-ref="strategyService" />
+        <entry key="hotWordService" value-ref="hotWordService" /> 
+        <entry key="redisTemplate" value-ref="redisTemplate" /> 
+      </map>
+    </property>
+    <property name="triggers">
+      <list>
+      	<ref bean="popgameTrigger" />
+      	<ref bean="popgameVideoPtTrigger" />
+        <ref bean="syncDataTrigger" />
+        <ref bean="syncNewsDataTrigger" />
+        <ref bean="logCollectionStatisticTrigger" /> 
+        <ref bean="syncStrategyNewsDataTrigger" />
+        <ref bean="syncStrategyPicDataTrigger" />
+        <ref bean="syncStrategyVideoDataTrigger" />
+        <ref bean="deleteMenuBubbleJobTrigger" />
+        <!-- <ref bean="syncMenuVideoPtDataJobTrigger"/> -->
+        <ref bean="syncHotwordJobTrigger"/>
+        <ref bean="updateStrategySortJobTrigger"/>
+      </list>
+    </property>
+
+    <property name="dataSource">
+      <ref bean="dataSource" />
+    </property>
+    <property name="applicationContextSchedulerContextKey" value="applicationContextKey" />
+    <property name="quartzProperties">
+        <props>
+        <!-- 关闭Quartz启动时的检查更新版本 -->
+        <prop key="org.quartz.scheduler.skipUpdateCheck">true</prop>
+        </props>
+    </property>
+    <property name="overwriteExistingJobs" value="true"/>
+    <!--configLocation：用于指明quartz的配置文件的位置 -->
+    <property name="configLocation" value="classpath:quartz.properties" />
+  </bean>
+</beans>

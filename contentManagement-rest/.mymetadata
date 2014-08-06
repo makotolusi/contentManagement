@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="content management system rest app"
+  id="myeclipse.1377478460914"
+  context-root="/video-mobile-cms-rest"
+  j2ee-spec="6.0"
+  archive="content management system rest app.war">
+  <attributes>
+    <attribute name="webrootdir" value="src/main/webapp" />
+  </attributes>
+</project-module>
+

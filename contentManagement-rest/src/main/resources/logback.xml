@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false">
+
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%date{yyyy-MM-dd HH:mm:ss.SSS,Asia/Shanghai} %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="rollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${catalina.home}/logs/rest.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${catalina.home}/logs/rest.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>10</maxHistory>    
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date{yyyy-MM-dd HH:mm:ss.SSS,Asia/Shanghai} %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="qrlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${catalina.home}/logs/qrlog.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${catalina.home}/logs/qr.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>20</maxHistory>    
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date{yyyy-MM-dd HH:mm:ss.SSS,Asia/Shanghai} %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+	<logger name="com.cyou.video.mobile.server.cms.rest.controller.support.SoftDownloadController" level="INFO" additivity="false" >
+		<appender-ref ref="qrlog" />
+	</logger>
+
+	<logger name="com.google.code.ssm.spring.SSMCache" level="warn" additivity="true" />
+
+	<!-- project default level -->
+	<logger name="com.cyou.video.mobile.server.cms" level="INFO" additivity="true"/>
+	<logger name="com.cyou.mbu.server.cms" level="INFO" additivity="true"/>
+
+	<logger name="org.springframework" level="INFO" additivity="true" />
+	<logger name="com.mchange.v2" level="INFO" additivity="true" />
+
+	<logger name="org.apache" level="INFO" additivity="true" />
+
+	<!-- root -->
+	<root level="INFO">
+		<appender-ref ref="stdout" />
+		<appender-ref ref="rollingFile" />
+	</root>
+</configuration>
