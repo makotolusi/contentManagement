@@ -54,9 +54,10 @@ public class OperationController {
   @RequestMapping(value = "/listRoleOperation", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap listRoleOperation(@RequestParam
-  String roleId,@RequestParam Integer out,HttpServletRequest request, ModelMap model) {
+  String roleId, @RequestParam
+  Integer out, HttpServletRequest request, ModelMap model) {
     try {
-      List<Operation> list = operationService.listOperationOfRole(roleId,out);
+      List<Operation> list = operationService.listOperationOfRole(roleId, out);
       model.addAttribute("data", list);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
@@ -88,10 +89,9 @@ public class OperationController {
   }
 
   @LogAnno(type = Constants.LOG_TYPE_UPDATE, desc = "更新指定操作项信息", modelName = "操作项管理")
-  @RequestMapping(value = "{id}", method = RequestMethod.POST)
+  @RequestMapping(value = "/update", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap updateOperation(@PathVariable("id")
-  int operationId, @RequestBody
+  public ModelMap updateOperation(@RequestBody
   Operation operation, ModelMap model) {
     try {
       logger.info("[method: updateOperation()] Update operation by params : "
@@ -107,14 +107,13 @@ public class OperationController {
     return model;
   }
 
-  @LogAnno(type = Constants.LOG_TYPE_DELETE, desc = "删除指定操作项", modelName = "操作项管理")
-  @RequestMapping(value = "{id}/delete", method = RequestMethod.GET)
+  @RequestMapping(value = "/delete", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap deleteOperation(@PathVariable("id")
-  int operationId, ModelMap model) {
+  public ModelMap deleteOperation(@RequestBody
+  Operation operation, ModelMap model) {
     try {
-      logger.info("[method: deleteOperation()] Delete operation by params : {operationId = " + operationId + "}");
-      operationService.deleteOperation(operationId);
+      logger.info("[method: deleteOperation()] Delete operation by params : {operationId = " + operation.getId() + "}");
+      operationService.deleteOperation(operation);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

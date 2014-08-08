@@ -26,6 +26,8 @@ public class Operation {
 
   private String manageItemId; // 所属管理项id
 
+  private boolean leaf = true;
+
   // private int assignable = Constants.STATUS.TRUE.getValue(); //是否可配置
   private List<String> roleIds;
 
@@ -69,8 +71,18 @@ public class Operation {
     this.roleIds = roleIds;
   }
 
-  public String toString() {
-    ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE);
-    return builder.toString();
+  public boolean isLeaf() {
+    return leaf;
   }
+
+  public void setLeaf(boolean leaf) {
+    this.leaf = leaf;
+  }
+
+  @Override
+  public String toString() {
+    return "Operation [id=" + id + ", name=" + name + ", url=" + url + ", manageItemId=" + manageItemId + ", leaf="
+        + leaf + ", roleIds=" + roleIds + "]";
+  }
+
 }

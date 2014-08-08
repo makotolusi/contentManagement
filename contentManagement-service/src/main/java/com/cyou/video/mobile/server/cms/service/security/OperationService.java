@@ -37,7 +37,7 @@ public interface OperationService {
    * @param id 操作项id
    * @throws Exception
    */
-  public void deleteOperation(int id) throws Exception;
+  public void deleteOperation(Operation id) throws Exception;
 
   /***
    * 添加角色

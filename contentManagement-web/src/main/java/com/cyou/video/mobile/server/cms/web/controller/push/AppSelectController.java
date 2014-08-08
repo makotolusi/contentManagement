@@ -22,44 +22,27 @@ import com.cyou.video.mobile.server.common.Constants;
  * @author LUSI
  */
 @Controller
-@RequestMapping("/web/activity/appSelect")
+@RequestMapping("/web/app")
 public class AppSelectController {
 
-	private Logger logger = LoggerFactory.getLogger(AppSelectController.class);
+  private Logger logger = LoggerFactory.getLogger(AppSelectController.class);
 
-	@Autowired
-	private AppSelectService appSelectService;
+  @Autowired
+  private AppSelectService appSelectService;
 
-	@RequestMapping(method = RequestMethod.GET)
-	public ModelAndView pushListPage(ModelMap model) {
-		try {
-			return new ModelAndView("/activity/appselect", "appList", model);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-
-	}
-
-
-	@RequestMapping(value = "/listApp", method = RequestMethod.POST)
-	@ResponseBody
-	public ModelMap listApp(@RequestBody
-      Map<String, Object> params, ModelMap model) {
-		try {
-//		  model.addAttribute("total", 100);
-			model.put("page",appSelectService.listApp(params));
-			model.addAttribute("message",
-					Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-
-		} catch (Exception e) {
-			logger.error(
-					"[method: addApp()]  : error! "
-							+ e.getMessage(), e);
-			model.addAttribute("message", e.getMessage());
-			e.printStackTrace();
-		}
-		return model;
-	}
+  @RequestMapping(value = "/list", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap listApp(@RequestBody
+  Map<String, Object> params, ModelMap model) {
+    try {
+      model.put("page", appSelectService.listApp(params));
+      model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+    }
+    catch(Exception e) {
+      logger.error("[method: addApp()]  : error! " + e.getMessage(), e);
+      model.addAttribute("message", e.getMessage());
+      e.printStackTrace();
+    }
+    return model;
+  }
 }

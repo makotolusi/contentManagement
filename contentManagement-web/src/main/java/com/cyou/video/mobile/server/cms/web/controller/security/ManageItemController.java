@@ -1,5 +1,7 @@
 package com.cyou.video.mobile.server.cms.web.controller.security;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +41,20 @@ public class ManageItemController {
   public ModelMap listManageItem(ModelMap model) {
     try {
       List<ManageItem> itemList = manageItemService.listManageItem();
-      model.addAttribute("data", itemList);
+//      List<Map<String,Object>> tree=new ArrayList<Map<String,Object>>();
+//      List<Map<String,Object>> subtree=new ArrayList<Map<String,Object>>();
+//      Map<String,Object> obj=new HashMap<String, Object>();
+//      obj.put("name", "1");
+//      obj.put("id", "1");
+//      obj.put("expanded", true);
+//      Map<String,Object> subobj=new HashMap<String, Object>();
+//      subobj.put("name", "2");
+//      subobj.put("id", "2");
+//      subobj.put("leaf", true);
+//      subtree.add(subobj);
+//      obj.put("operations", subtree);
+//      tree.add(obj);
+      model.addAttribute("children", itemList);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

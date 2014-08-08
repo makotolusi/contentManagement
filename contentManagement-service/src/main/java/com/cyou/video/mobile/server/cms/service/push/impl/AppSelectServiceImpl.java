@@ -44,16 +44,13 @@ public class AppSelectServiceImpl implements AppSelectService {
   @Override
   public Pagination listApp(Map<String, Object> params) {
     Query query = new Query();
-    if(!StringUtils.isEmpty((String)params.get("serviceName"))) {
-      Pattern pattern = Pattern.compile("^.*" + params.get("serviceName").toString() + ".*$");
+    if(!StringUtils.isEmpty((String)params.get("name"))) {
+      Pattern pattern = Pattern.compile("^.*" + params.get("name").toString() + ".*$");
       query.addCriteria(Criteria.where("name").regex(pattern));
     }
     Pagination pagination = new Pagination();
-    int curPage = Integer.parseInt(params.get("curPage").toString());
-    int pageSize =20;
-    pagination.setCurPage(curPage);
-    pagination.setPageSize(pageSize);
-    curPage = (curPage - 1) * pageSize;
+    int curPage = Integer.parseInt(params.get("start").toString());
+    int pageSize =Integer.parseInt(params.get("limit").toString());
     query.limit(pageSize);
     query.skip(curPage);
     query.with(new Sort(Sort.Direction.DESC, "appId"));

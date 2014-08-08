@@ -86,14 +86,24 @@ public class OperationServiceImpl implements OperationService {
   }
 
   @Override
-  public void deleteOperation(int id) throws Exception {
-    if(id < 1) {
+  public void deleteOperation(Operation op) throws Exception {
+    if(op == null) {
       throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.getValue(),
           Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.toString() + "_operation.id");
     }
-    // roleOperationRelaDao.deleteRoleOperationRelaByOperation(id);
-    // //删除每一个操作项都要先删除与角色的关联关系
-    // operationDao.deleteOperation(id);
+    mongoTemplate.remove(op);
+    ManageItem manageItem = mongoTemplate.findOne(new Query(new Criteria("id").is(op.getManageItemId())),
+        ManageItem.class);
+    List<Operation> ops = manageItem.getOperations();
+    for(int i = 0; i < ops.size(); i++) {
+      Operation o = (Operation) ops.get(i);
+      if(o == null) {
+        ops.remove(o);
+        i--;
+      }
+    }
+    manageItem.setOperations(ops);
+    mongoTemplate.save(manageItem);
   }
 
   @Override

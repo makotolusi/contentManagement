@@ -236,17 +236,14 @@ public class PushServiceImpl implements PushService {
   public Pagination listPush(Map<String, Object> params) throws Exception {
     Pagination pagination = null;
     pagination = new Pagination();
-    int curPage = Integer.parseInt(params.get("curPage").toString());
-    int pageSize = Integer.parseInt(params.get("pageSize").toString());
-    pagination.setCurPage(curPage);
-    pagination.setPageSize(pageSize);
-    curPage = (curPage - 1) * pageSize;
+    int curPage = Integer.parseInt(params.get("start").toString());
+    int pageSize = Integer.parseInt(params.get("limit").toString());
     params.put("curPage", curPage);
     params.put("pageSize", pageSize);
     pagination.setRowCount((int) mongoTemplate.count(this.getQuery(params), Push.class));
     List<Push> pushs = mongoTemplate.find(this.getQuery(params), Push.class);
     List<Push> result = new ArrayList<Push>();
-    if(org.springframework.util.StringUtils.isEmpty(params.get("pushType"))) {
+    if(org.springframework.util.StringUtils.isEmpty(params.get("pushType"))||Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.IMMEDIATE) {
       pagination.setContent(pushs);
     }
     else {

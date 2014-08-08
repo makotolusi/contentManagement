@@ -91,13 +91,11 @@ public class ManageItem implements Serializable {
     this.operations = operations;
   }
 
+  @Override
   public String toString() {
-    ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE);
-    builder.append("id", id);
-    builder.append("name", name);
-    builder.append("url", url);
-    builder.append("status", status);
-    builder.append("orderNum", orderNum);
-    return builder.toString();
+    return "ManageItem [id=" + id + ", name=" + name + ", url=" + url + ", status=" + status + ", operations="
+        + operations + ", orderNum=" + orderNum + "]";
   }
+
+
 }

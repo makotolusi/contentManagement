@@ -42,7 +42,7 @@ import com.cyou.video.mobile.server.common.Constants;
  * @author LUSI
  */
 @Controller
-@RequestMapping("/web/activity/push")
+@RequestMapping("/web/push")
 public class PushController {
 
   private Logger logger = LoggerFactory.getLogger(PushServiceImpl.class);
@@ -178,12 +178,11 @@ public class PushController {
     return model;
   }
 
-  @RequestMapping(value = "/listPush", method = RequestMethod.POST)
+  @RequestMapping(value = "/list", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap list(@RequestBody
   Map<String, Object> params, ModelMap model) {
     try {
-      params.put("pageSize", Pagination.PAGESIZE);
       Pagination pagination = pushService.listPush(params);
       model.addAttribute("page", pagination);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());

@@ -26,7 +26,7 @@ public class ManageItemServiceImpl implements ManageItemService {
   @Autowired
   private MongoOperations mongoTemplate;
 //
-//  @Override
+  @Override
   public List<ManageItem> listManageItem() throws Exception {
     Query q=new Query();
     q.with(new Sort(Direction.ASC, "orderNum"));
