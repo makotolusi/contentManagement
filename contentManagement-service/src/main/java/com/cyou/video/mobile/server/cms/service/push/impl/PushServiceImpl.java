@@ -209,33 +209,24 @@ public class PushServiceImpl implements PushService {
    * @return
    * @throws Exception
    */
-  public Map<String, String> postGetTriggerInfo(String pushId) {
-    try {
-
-      Map<String, String> params = new HashMap<String, String>();
-      params.put("pushId", pushId + "");
-      String result = HttpUtil.syncPost(jobDomain + "/job/push/getTriggerInfo", params, null);
-      if(StringUtils.isEmpty(result)) {
-        logger.info("job return msg is blank push id is " + pushId);
-        return null;
-      }
-      else {
-        @SuppressWarnings("unchecked")
-        Map<String, String> map = JacksonUtil.getJsonMapper().readValue(result, Map.class);
-        return map;
-      }
-    }
-    catch(Exception e) {
-      logger.error("postGetTriggerInfo" + pushId);
+  public Map<String, String> postGetTriggerInfo(String pushId) throws Exception {
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("pushId", pushId + "");
+    String result = HttpUtil.syncPost(jobDomain + "/job/push/getTriggerInfo", params, null);
+    if(StringUtils.isEmpty(result)) {
+      logger.info("job return msg is blank push id is " + pushId);
       return null;
     }
-
+    else {
+      @SuppressWarnings("unchecked")
+      Map<String, String> map = JacksonUtil.getJsonMapper().readValue(result, Map.class);
+      return map;
+    }
   }
 
   @Override
   public Pagination listPush(Map<String, Object> params) throws Exception {
-    Pagination pagination = null;
-    pagination = new Pagination();
+    Pagination pagination =  new Pagination();
     int curPage = Integer.parseInt(params.get("start").toString());
     int pageSize = Integer.parseInt(params.get("limit").toString());
     params.put("curPage", curPage);
@@ -243,15 +234,16 @@ public class PushServiceImpl implements PushService {
     pagination.setRowCount((int) mongoTemplate.count(this.getQuery(params), Push.class));
     List<Push> pushs = mongoTemplate.find(this.getQuery(params), Push.class);
     List<Push> result = new ArrayList<Push>();
-    if(org.springframework.util.StringUtils.isEmpty(params.get("pushType"))||Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.IMMEDIATE) {
+    if(org.springframework.util.StringUtils.isEmpty(params.get("pushType"))
+        || Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.IMMEDIATE) {
       pagination.setContent(pushs);
     }
     else {
+      int flag = 0;
       for(Iterator<Push> iterator = pushs.iterator(); iterator.hasNext();) {
         Push push = iterator.next();
         if(Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.TIMING) {
           try {
-
             Map<String, String> map = this.postGetTriggerInfo(push.getId());
             if(map != null) {
               push.setTirggerName(map.get("name"));
@@ -262,16 +254,21 @@ public class PushServiceImpl implements PushService {
             }
           }
           catch(Exception e) {
-            e.printStackTrace();
+            flag = 1;
             logger.error("get job info failed :" + e.getMessage());
-
+            break;
           }
         }
         result.add(push);
       }
-      pagination.setContent(result);
+      if(flag == 1) {
+        pagination.setContent(pushs);
+      }
+      else {
+        pagination.setContent(result);
+      }
     }
-  
+
     return pagination;
   }
 
@@ -326,7 +323,7 @@ public class PushServiceImpl implements PushService {
 
   @Override
   public void modifyAutoPushStateById(int id, PUSH_JOB_STATE state) throws Exception {
-//    pushDao.updateStateById(id, state);
+    // pushDao.updateStateById(id, state);
   }
 
   @Override

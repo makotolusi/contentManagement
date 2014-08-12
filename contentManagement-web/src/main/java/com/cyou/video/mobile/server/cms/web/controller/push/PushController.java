@@ -190,7 +190,6 @@ public class PushController {
     catch(Exception e) {
       logger.error("[method: listPush()] Get Push list : error! " + e.getMessage(), e);
       model.addAttribute("message", e.getMessage());
-      e.printStackTrace();
     }
 
     return model;
