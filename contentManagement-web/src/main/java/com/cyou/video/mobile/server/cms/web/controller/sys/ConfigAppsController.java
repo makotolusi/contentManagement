@@ -2,6 +2,8 @@ package com.cyou.video.mobile.server.cms.web.controller.sys;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,29 +13,46 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import com.cyou.video.mobile.server.cms.model.sys.ContentType;
-import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
+
+import com.cyou.video.mobile.server.cms.model.sys.ConfigApps;
+import com.cyou.video.mobile.server.cms.service.sys.ConfigAppsService;
 import com.cyou.video.mobile.server.common.Constants;
 
 /**
- * 类型维护controller
+ * 应用维护controller
  * 
  * @author lusi
  */
 @Controller
-@RequestMapping("/web/contentType")
-public class ContentTypeController {
-  private Logger logger = LoggerFactory.getLogger(ContentTypeController.class);
+@RequestMapping("/web/configapps")
+public class ConfigAppsController {
+  private Logger logger = LoggerFactory.getLogger(ConfigAppsController.class);
 
   @Autowired
-  private ContentTypeService contentTypeService;
+  private ConfigAppsService configAppsService;
 
   @RequestMapping(value = "/list", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap list(@RequestBody
   Map<String, Object> params, ModelMap model) {
     try {
-      model.addAttribute("page", contentTypeService.listContentType(params));
+      model.addAttribute("page", configAppsService.listContentType(params));
+      model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+    }
+    catch(Exception e) {
+      logger.error("[method: list()] Get contentType log list : error!" + e.getMessage(), e);
+      model.addAttribute("message", e.getMessage());
+      e.printStackTrace();
+    }
+    return model;
+  }
+
+  @RequestMapping(value = "/findByAppid", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap findByAppid(@RequestBody
+  Map<String, Object> params, ModelMap model) {
+    try {
+      model.addAttribute("app", configAppsService.findByAppid(Integer.parseInt(params.get("appId").toString())));
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -46,9 +65,10 @@ public class ContentTypeController {
 
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap create(@RequestBody ContentType contentType, ModelMap model) {
+  public ModelMap create(@RequestBody
+  ConfigApps configApps, ModelMap model) {
     try {
-      contentTypeService.createContentType(contentType);
+      configAppsService.createContentType(configApps);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -58,13 +78,13 @@ public class ContentTypeController {
     }
     return model;
   }
-  
 
   @RequestMapping(value = "/delete", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap delete(@RequestBody ContentType contentType, ModelMap model) {
+  public ModelMap delete(@RequestBody
+  ConfigApps configApps, ModelMap model) {
     try {
-      contentTypeService.deleteContentType(contentType);
+      configAppsService.deleteContentType(configApps);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -74,12 +94,13 @@ public class ContentTypeController {
     }
     return model;
   }
-  
+
   @RequestMapping(value = "/update", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap update(@RequestBody ContentType contentType, ModelMap model) {
+  public ModelMap update(@RequestBody
+  ConfigApps configApps, ModelMap model) {
     try {
-      contentTypeService.updateContentType(contentType);
+      configAppsService.updateContentType(configApps);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

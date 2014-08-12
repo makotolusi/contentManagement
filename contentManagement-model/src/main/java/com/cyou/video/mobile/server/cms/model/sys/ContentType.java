@@ -2,28 +2,31 @@ package com.cyou.video.mobile.server.cms.model.sys;
 
 import java.util.List;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "Config_ContentType")
-public class ContentType  {
+public class ContentType {
 
-//
-//  @Id
+  @Id
   private String id;
 
-  private String ctName;
+  private String name;
 
   private String desc;
-//
+
   private String index;
-   @DBRef
-   private List<ContentType> subContentType;
+
+  @DBRef
+  private List<ContentType> subContentType;
 
   private String items;// 前端展现代码
 
   private String resourceUri;
 
+  private String code;
+  
   public String getDesc() {
     return desc;
   }
@@ -64,12 +67,12 @@ public class ContentType  {
     this.resourceUri = resourceUri;
   }
 
-  public String getCtName() {
-    return ctName;
+  public String getName() {
+    return name;
   }
 
-  public void setCtName(String ctName) {
-    this.ctName = ctName;
+  public void setName(String name) {
+    this.name = name;
   }
 
   public List<ContentType> getSubContentType() {
@@ -80,5 +83,12 @@ public class ContentType  {
     this.subContentType = subContentType;
   }
 
-  
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
+
 }

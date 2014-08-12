@@ -43,6 +43,8 @@ public class ManageItem implements Serializable {
 
   private int orderNum; // 管理项顺序
 
+  private boolean expanded = true;
+
   public String getId() {
     return id;
   }
@@ -91,11 +93,18 @@ public class ManageItem implements Serializable {
     this.operations = operations;
   }
 
+  public boolean isExpanded() {
+    return expanded;
+  }
+
+  public void setExpanded(boolean expanded) {
+    this.expanded = expanded;
+  }
+
   @Override
   public String toString() {
     return "ManageItem [id=" + id + ", name=" + name + ", url=" + url + ", status=" + status + ", operations="
         + operations + ", orderNum=" + orderNum + "]";
   }
-
 
 }

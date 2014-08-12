@@ -12,7 +12,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.cyou.video.mobile.server.cms.model.Pagination;
+import com.cyou.video.mobile.server.cms.model.sys.ConfigApps;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
+import com.cyou.video.mobile.server.cms.service.sys.ConfigAppsService;
 import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
 
 /**
@@ -20,8 +22,8 @@ import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
  * 
  * @author zs
  */
-@Service("contentTypeService")
-public class ContentTypeServiceImpl implements ContentTypeService {
+@Service("configAppsService")
+public class ConfigAppsServiceImpl implements ConfigAppsService {
 
   @Autowired
   private MongoOperations mongoTemplate;
@@ -36,28 +38,32 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     Query q=new Query();
     q.with(new Sort(Direction.ASC, "index"));
     pagination.setRowCount((int) mongoTemplate.count(new Query(), ContentType.class));
-    List<ContentType> conTypes = mongoTemplate.find(q,ContentType.class);
+    List<ConfigApps> conTypes = mongoTemplate.find(q,ConfigApps.class);
     pagination.setContent(conTypes);
     return pagination;
   }
 
   @Override
-  public void createContentType(ContentType contentType) throws Exception {
-    mongoTemplate.save(contentType);
+  public ConfigApps findByAppid(Integer appId) throws Exception {
+    return mongoTemplate.findOne(new Query(new Criteria("appIds").is(appId)),ConfigApps.class);
   }
   @Override
-  public void deleteContentType(ContentType contentType) throws Exception {
-    mongoTemplate.remove(contentType);
+  public void createContentType(ConfigApps configApps) throws Exception {
+    mongoTemplate.save(configApps);
   }
   @Override
-  public void updateContentType(ContentType contentType) throws Exception {
+  public void deleteContentType(ConfigApps configApps) throws Exception {
+    mongoTemplate.remove(configApps);
+  }
+  @Override
+  public void updateContentType(ConfigApps configApps) throws Exception {
 //    ContentType ct = mongoTemplate.findOne(new Query(new Criteria("id").is(contentType.getId())), ContentType.class);
 //    List<ContentType> cts = ct.getSubContentType();
 //    if(cts != null) {
 //      cts.add(contentType);
 //      ct.setSubContentType(cts);
 //    }
-    mongoTemplate.save(contentType);
+    mongoTemplate.save(configApps);
   }
 
 }
