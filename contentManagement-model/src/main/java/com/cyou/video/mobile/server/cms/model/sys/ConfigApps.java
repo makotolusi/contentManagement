@@ -19,6 +19,9 @@ public class ConfigApps {
   @DBRef
   private List<ContentType> contentTypes;
 
+  @DBRef
+  private List<ContentType> tagTypes;
+
   public String getId() {
     return id;
   }
@@ -49,6 +52,14 @@ public class ConfigApps {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public List<ContentType> getTagTypes() {
+    return tagTypes;
+  }
+
+  public void setTagTypes(List<ContentType> tagTypes) {
+    this.tagTypes = tagTypes;
   }
 
 }

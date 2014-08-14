@@ -226,7 +226,7 @@ public class PushServiceImpl implements PushService {
 
   @Override
   public Pagination listPush(Map<String, Object> params) throws Exception {
-    Pagination pagination =  new Pagination();
+    Pagination pagination = new Pagination();
     int curPage = Integer.parseInt(params.get("start").toString());
     int pageSize = Integer.parseInt(params.get("limit").toString());
     params.put("curPage", curPage);
@@ -377,23 +377,11 @@ public class PushServiceImpl implements PushService {
   public Push pushInfo(Push push) {
     switch(push.getUserScope()) {
       case ALL :
-        if(Consts.PUSH_PLATFORM_TYPE.BAIDU.equals(push.getPlatForm())) {
-          return baiduPush.pushAll(push);
-        }
-        if(Consts.PUSH_PLATFORM_TYPE.XINGE.equals(push.getPlatForm())) {
-          return xingePush.pushAll(push);
-        }
-        break;
+        return xingePush.pushAll(push);
       case SINGLE :
         break;
       case TAG :
-        if(Consts.PUSH_PLATFORM_TYPE.BAIDU.equals(push.getPlatForm())) {
-          return baiduPush.pushTag(push);
-        }
-        if(Consts.PUSH_PLATFORM_TYPE.XINGE.equals(push.getPlatForm())) {
-          return xingePush.pushTag(push);
-        }
-        break;
+        return xingePush.pushTag(push);
       default :
         break;
     }
