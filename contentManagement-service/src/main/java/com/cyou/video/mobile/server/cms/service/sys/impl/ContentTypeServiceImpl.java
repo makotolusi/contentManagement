@@ -18,7 +18,7 @@ import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
 /**
  * 推送类型维护
  * 
- * @author zs
+ * @author lusi
  */
 @Service("contentTypeService")
 public class ContentTypeServiceImpl implements ContentTypeService {
@@ -33,30 +33,38 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     int pageSize = Integer.parseInt(params.get("limit").toString());
     params.put("curPage", curPage);
     params.put("pageSize", pageSize);
-    Query q=new Query();
+    Query q = new Query();
     q.with(new Sort(Direction.ASC, "index"));
     pagination.setRowCount((int) mongoTemplate.count(new Query(), ContentType.class));
-    List<ContentType> conTypes = mongoTemplate.find(q,ContentType.class);
+    List<ContentType> conTypes = mongoTemplate.find(q, ContentType.class);
     pagination.setContent(conTypes);
     return pagination;
+  }
+
+  @Override
+  public ContentType getByIndex(String index) throws Exception {
+    return mongoTemplate.findOne(new Query(new Criteria("index").is(index)), ContentType.class);
   }
 
   @Override
   public void createContentType(ContentType contentType) throws Exception {
     mongoTemplate.save(contentType);
   }
+
   @Override
   public void deleteContentType(ContentType contentType) throws Exception {
     mongoTemplate.remove(contentType);
   }
+
   @Override
   public void updateContentType(ContentType contentType) throws Exception {
-//    ContentType ct = mongoTemplate.findOne(new Query(new Criteria("id").is(contentType.getId())), ContentType.class);
-//    List<ContentType> cts = ct.getSubContentType();
-//    if(cts != null) {
-//      cts.add(contentType);
-//      ct.setSubContentType(cts);
-//    }
+    // ContentType ct = mongoTemplate.findOne(new Query(new
+    // Criteria("id").is(contentType.getId())), ContentType.class);
+    // List<ContentType> cts = ct.getSubContentType();
+    // if(cts != null) {
+    // cts.add(contentType);
+    // ct.setSubContentType(cts);
+    // }
     mongoTemplate.save(contentType);
   }
 

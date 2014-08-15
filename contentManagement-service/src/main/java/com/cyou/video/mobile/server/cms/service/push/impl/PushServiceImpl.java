@@ -373,8 +373,8 @@ public class PushServiceImpl implements PushService {
     push.setPushType(PUSH_TYPE.AUTO);
     this.autoPush(push);
   }
-
-  public Push pushInfo(Push push) {
+  @Override
+  public Push pushInfo(Push push) throws Exception {
     switch(push.getUserScope()) {
       case ALL :
         return xingePush.pushAll(push);

@@ -116,7 +116,7 @@ public interface PushService {
 	 */
 	void autoPush(Push push) throws Exception;
 
-	public Push pushInfo(Push push);
+	public Push pushInfo(Push push) throws Exception;
 
 	/**
 	 * 自动推送任务启停 

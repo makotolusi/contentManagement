@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +31,13 @@ import com.cyou.video.mobile.server.cms.common.Consts.PUSH_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_USER_SCOPE;
 import com.cyou.video.mobile.server.cms.model.Pagination;
 import com.cyou.video.mobile.server.cms.model.push.Push;
+import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
 import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 import com.cyou.video.mobile.server.cms.service.push.SystemConfigService;
 import com.cyou.video.mobile.server.cms.service.push.impl.PushServiceImpl;
+import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
 import com.cyou.video.mobile.server.common.Constants;
 
 /**
@@ -58,19 +61,28 @@ public class PushController {
 
   @Autowired
   private SystemConfigService systemConfigService;
-  
+
+  @Autowired
+  ContentTypeService contentTypeService;
+
   @RequestMapping(method = RequestMethod.GET)
   public ModelAndView pushListPage(HttpServletRequest reques, ModelMap model) {
     try {
       model.put("source", CONTENT_SOURCE.values());
       model.put("appId", reques.getParameter("appId"));
-      if(systemConfigService.getSystemConfigByConfigKey("sys_wangyoubaobei_app_id").equals(reques.getParameter("appId")))//网游宝贝
+      if(systemConfigService.getSystemConfigByConfigKey("sys_wangyoubaobei_app_id")
+          .equals(reques.getParameter("appId")))// 网游宝贝
       {
-        COLLECTION_ITEM_TYPE[] t=new COLLECTION_ITEM_TYPE[]{COLLECTION_ITEM_TYPE.NEWS,COLLECTION_ITEM_TYPE.NEWS_LIST_PAGE,COLLECTION_ITEM_TYPE.GAME,COLLECTION_ITEM_TYPE.GIFT,COLLECTION_ITEM_TYPE.GIFT_QIANG_PAGE,COLLECTION_ITEM_TYPE.GIFT_TAO_PAGE,COLLECTION_ITEM_TYPE.OTHER};
-        model.put("itemType",t);
-      }else{
-        COLLECTION_ITEM_TYPE[] t=new COLLECTION_ITEM_TYPE[]{COLLECTION_ITEM_TYPE.LIVE,COLLECTION_ITEM_TYPE.WALKTHROUGH,COLLECTION_ITEM_TYPE.GIFT,COLLECTION_ITEM_TYPE.VIDEO,COLLECTION_ITEM_TYPE.NEWS,COLLECTION_ITEM_TYPE.JIONG};
-        model.put("itemType",t);
+        COLLECTION_ITEM_TYPE[] t = new COLLECTION_ITEM_TYPE[]{COLLECTION_ITEM_TYPE.NEWS,
+            COLLECTION_ITEM_TYPE.NEWS_LIST_PAGE, COLLECTION_ITEM_TYPE.GAME, COLLECTION_ITEM_TYPE.GIFT,
+            COLLECTION_ITEM_TYPE.GIFT_QIANG_PAGE, COLLECTION_ITEM_TYPE.GIFT_TAO_PAGE, COLLECTION_ITEM_TYPE.OTHER};
+        model.put("itemType", t);
+      }
+      else {
+        COLLECTION_ITEM_TYPE[] t = new COLLECTION_ITEM_TYPE[]{COLLECTION_ITEM_TYPE.LIVE,
+            COLLECTION_ITEM_TYPE.WALKTHROUGH, COLLECTION_ITEM_TYPE.GIFT, COLLECTION_ITEM_TYPE.VIDEO,
+            COLLECTION_ITEM_TYPE.NEWS, COLLECTION_ITEM_TYPE.JIONG};
+        model.put("itemType", t);
       }
       model.put("pushPlatForm", reques.getParameter("pushPlatForm"));
       model.put("appKey", reques.getParameter("appKey"));
@@ -113,67 +125,76 @@ public class PushController {
   @RequestMapping(value = "/condition", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap createPush(@RequestBody
-  Push push, ModelMap model) {
-    // 多选推送客户端
-    List<CLIENT_TYPE> clientType = new ArrayList<CLIENT_TYPE>();
-    if(push.getClientType() == CLIENT_TYPE.ALL) {
-      clientType.add(CLIENT_TYPE.ANDROID);
-      clientType.add(CLIENT_TYPE.IOS);
-    }
-    else
-      clientType.add(push.getClientType());
-    for(Iterator iterator = clientType.iterator(); iterator.hasNext();) {
-      CLIENT_TYPE client_TYPE = (CLIENT_TYPE) iterator.next();
-      push.setId(null);
-      push.setClientType(client_TYPE);
-      if(push.getContentTy() != null) push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
-      // 推送一次开始
-      push.setJobState(PUSH_JOB_STATE.ENABLE);
-      if(!push.getTags().isEmpty()) {
-        push.setUserScope(PUSH_USER_SCOPE.TAG);
+  Push push, HttpServletResponse response, ModelMap model) throws Exception {
+    try {
+      // 多选推送客户端
+      List<CLIENT_TYPE> clientType = new ArrayList<CLIENT_TYPE>();
+      if(push.getClientType() == CLIENT_TYPE.ALL) {
+        clientType.add(CLIENT_TYPE.ANDROID);
+        clientType.add(CLIENT_TYPE.IOS);
       }
-      push.setSendState(PUSH_SEND_STATE.FAIL);
-      String pushId = pushService.createPush(push);
-      push.setId(pushId);
-      if(pushId == null) {
-        logger.error("insert push object failed!!");
-        model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString());
-        return model;
-      }
-      else {
-        switch(push.getPushType()) {
-          case IMMEDIATE :
-            push = pushService.pushInfo(push);
-            if(push.getSendState() == PUSH_SEND_STATE.FAIL)
-              model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " msg : " + push.getSentLogs());
-            else {
-              pushService.updateSendStateById(push);
-              model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-            }
-            break;
-          case TIMING :
-            // 调用cms-job创建新quartz任务
-            try {
-              Calendar c = Calendar.getInstance();
-              pushService.postNewJob(push.getId(), push.getCronExp() + " " + c.get(Calendar.YEAR));
-              model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-            }
-            catch(Exception e) {
-              e.printStackTrace();
-              logger.error("insert push object failed!!");
-              model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString()+":"+e.getMessage());
-              return model;
-            }
-            break;
-          case AUTO :
-            model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-            break;
-          default :
-            break;
+      else
+        clientType.add(push.getClientType());
+      for(Iterator iterator = clientType.iterator(); iterator.hasNext();) {
+        CLIENT_TYPE client_TYPE = (CLIENT_TYPE) iterator.next();
+        push.setId(null);
+        push.setClientType(client_TYPE);
+        if(push.getKeyValue() != null) {
+          ContentType contentType = contentTypeService.getByIndex(push.getKeyValue().get("p"));
+          if(contentType != null) {
+            ContentType c = new ContentType();
+            c.setDesc(contentType.getDesc());
+            c.setIndex(contentType.getIndex());
+            c.setName(contentType.getName());
+            push.setContentType(c);
+          }
         }
+        // 推送一次开始
+        push.setJobState(PUSH_JOB_STATE.ENABLE);
+        if(!push.getTags().isEmpty()) {
+          push.setUserScope(PUSH_USER_SCOPE.TAG);
+        }
+        push.setSendState(PUSH_SEND_STATE.FAIL);
+        String pushId = pushService.createPush(push);
+        push.setId(pushId);
+        if(pushId == null) {
+          logger.error("insert push object failed!!");
+          model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString());
+          return model;
+        }
+        else {
+          switch(push.getPushType()) {
+            case IMMEDIATE :
+              push = pushService.pushInfo(push);
+              if(push.getSendState() == PUSH_SEND_STATE.FAIL)
+                model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " msg : " + push.getSentLogs());
+              else {
+                pushService.updateSendStateById(push);
+                model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+              }
+              break;
+            case TIMING :
+              // 调用cms-job创建新quartz任务
+              pushService.postNewJob(push.getId(), push.getCronExp());
+              model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+              break;
+            case AUTO :
+              model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+              break;
+            default :
+              break;
+          }
 
+        }
       }
     }
+    catch(Exception e) {
+      e.printStackTrace();
+      logger.error("push  failed!!");
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      return model;
+    }
+    response.setStatus(HttpServletResponse.SC_OK);
     return model;
   }
 
@@ -230,8 +251,7 @@ public class PushController {
   @ResponseBody
   public ModelMap sendAgain(@RequestBody
   Push push, ModelMap model) {
-    if(push.getContentTy() != null)
-      push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
+    if(push.getContentTy() != null) push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
     if(!push.getTags().isEmpty()) {
       push.setUserScope(PUSH_USER_SCOPE.TAG);
     }

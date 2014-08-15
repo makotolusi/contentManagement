@@ -178,15 +178,14 @@ public class XinGePush implements PushInterface {
     MessageIOS message = iosMessage(push);
     List<String> tagList = new ArrayList<String>();
     setTags(push, tagList);
-    JSONObject respose = xinge.pushTags(XingeApp.DEVICE_ANDROID, tagList, push.getTagRelation(), message,
-        ios_deployStatus);
-    setSuccess(push, respose);
+//    JSONObject respose = xinge.pushTags(XingeApp.DEVICE_ANDROID, tagList, push.getTagRelation(), message,
+//        ios_deployStatus);
+//    setSuccess(push, respose);
     return push;
   }
 
   @Override
-  public Push pushTag(Push push) {
-    try {
+  public Push pushTag(Push push) throws Exception{
       XingeApp xinge = this.initChannel(push);
       switch(push.getClientType()) {
         case ANDROID :
@@ -199,14 +198,6 @@ public class XinGePush implements PushInterface {
           break;
       }
       return push;
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-      logger.error("push all exception ------- {} ", e.getMessage());
-      push.setSentLogs(e.getMessage());
-      push.setSendState(PUSH_SEND_STATE.FAIL);
-      return push;
-    }
   }
 
   @Override

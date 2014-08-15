@@ -3,7 +3,7 @@
   type="WEB"
   name="content management system job app"
   id="myeclipse.1376620907307"
-  context-root="/video-mobile-cms-job"
+  context-root="/job"
   j2ee-spec="6.0"
   archive="content management system job app.war">
   <attributes>

@@ -8,7 +8,7 @@ import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 
 /**
  * CMS系统参数业务接口
- * @author zs
+ * @author lusi
  */
 public interface ContentTypeService {
 
@@ -39,4 +39,12 @@ public interface ContentTypeService {
    * @throws Exception
    */
   void deleteContentType(ContentType contentType) throws Exception;
+
+  /**
+   * 根据index取类型
+   * @param index
+   * @return
+   * @throws Exception
+   */
+  ContentType getByIndex(String index) throws Exception;
 }

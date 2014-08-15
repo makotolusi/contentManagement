@@ -11,7 +11,7 @@ import com.tencent.xinge.TagTokenPair;
 public interface PushInterface {
   public Push pushAll(Push push);
 
-  public Push pushTag(Push push);
+  public Push pushTag(Push push) throws Exception;
 
   public void setTag(String uid, String tag) throws Exception;
 

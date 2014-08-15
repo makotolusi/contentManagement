@@ -1,8 +1,5 @@
 package com.cyou.video.mobile.server.cms.model.push;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,27 +7,22 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.cyou.video.mobile.server.cms.common.Consts.CLIENT_TYPE;
-import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_ITEM_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_JOB_STATE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_PLATFORM_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_SEND_STATE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_USER_SCOPE;
-import com.cyou.video.mobile.server.cms.model.BaseModel;
+import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.common.adapter.JaxbDatetimeAdapter;
 import com.cyou.video.mobile.server.common.adapter.JaxbEnumAdapter;
 
 @Document(collection = "Push")
-public class Push extends BaseModel {
+public class Push {
 
   @Id
   private String id;
@@ -48,18 +40,18 @@ public class Push extends BaseModel {
   /**
    * 推送消息内容类型
    */
-  private COLLECTION_ITEM_TYPE contentType;
-  
+  private ContentType contentType;
+
   @Transient
   private String contentTy;
-  
+
   @Transient
   private String clientTypes;
 
-  private List<PushTagCollection> tags=new ArrayList<PushTagCollection>();
+  private List<PushTagCollection> tags = new ArrayList<PushTagCollection>();
 
-  private String tagRelation;//标签关系
-  
+  private String tagRelation;// 标签关系
+
   private String sentLogs;
 
   /**
@@ -81,6 +73,7 @@ public class Push extends BaseModel {
    * 时段控制
    */
   private Map<String, Integer> interval;
+
   /**
    * 客户端类型
    */
@@ -99,7 +92,7 @@ public class Push extends BaseModel {
   /**
    * 任务创建时间
    */
-  private Date sendDate=new Date();
+  private Date sendDate = new Date();
 
   /**
    * 推送消息点击去向
@@ -170,7 +163,6 @@ public class Push extends BaseModel {
    */
   private PUSH_PLATFORM_TYPE platForm;
 
-  
   public Map<String, String> getKeyValue() {
     return keyValue;
   }
@@ -213,7 +205,6 @@ public class Push extends BaseModel {
   public void setSecretKey(String secretKey) {
     this.secretKey = secretKey;
   }
-
 
   public String getId() {
     return id;
@@ -283,15 +274,6 @@ public class Push extends BaseModel {
 
   public void setContent(String content) {
     this.content = content;
-  }
-
-  @XmlJavaTypeAdapter(JaxbEnumAdapter.class)
-  public COLLECTION_ITEM_TYPE getContentType() {
-    return contentType;
-  }
-
-  public void setContentType(COLLECTION_ITEM_TYPE contentType) {
-    this.contentType = contentType;
   }
 
   public String getTarget() {
@@ -409,7 +391,6 @@ public class Push extends BaseModel {
     this.channelId = channelId;
   }
 
-
   public String getContentTy() {
     return contentTy;
   }
@@ -433,7 +414,7 @@ public class Push extends BaseModel {
   public void setPlatForm(PUSH_PLATFORM_TYPE platForm) {
     this.platForm = platForm;
   }
-  
+
   public Map<String, Integer> getInterval() {
     return interval;
   }
@@ -442,8 +423,16 @@ public class Push extends BaseModel {
     this.interval = interval;
   }
 
+  public ContentType getContentType() {
+    return contentType;
+  }
+
+  public void setContentType(ContentType contentType) {
+    this.contentType = contentType;
+  }
+
   public String getTagRelation() {
-    if(tags.size()<=1)
+    if(tags.size() <= 1)
       return "OR";
     else
       return tagRelation;
@@ -462,56 +451,16 @@ public class Push extends BaseModel {
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    title = (String) in.readObject();
-    content = (String) in.readObject();
-    contentType = (COLLECTION_ITEM_TYPE) in.readObject();
-    clientType = (CLIENT_TYPE) in.readObject();
-  }
-
-  @Override
-  public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeObject(title);
-    out.writeObject(content);
-    out.writeObject(contentType);
-    out.writeObject(clientType);
-  }
-
-  @Override
   public String toString() {
-    ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE);
-    builder.append("id", id);
-    builder.append("title", title);
-    builder.append("content", content);
-    return builder.toString();
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    boolean equals = false;
-    if(other instanceof Push) {
-      if(this == other) {
-        equals = true;
-      }
-      else {
-        Push cast = (Push) other;
-        EqualsBuilder builder = new EqualsBuilder();
-        builder.append(id, cast.id);
-        builder.append(title, cast.title);
-        builder.append(content, cast.content);
-        equals = builder.isEquals();
-      }
-    }
-    return equals;
-  }
-
-  @Override
-  public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(id);
-    builder.append(title);
-    builder.append(content);
-    return builder.toHashCode();
+    return "Push [id=" + id + ", title=" + title + ", content=" + content + ", contentType=" + contentType
+        + ", contentTy=" + contentTy + ", clientTypes=" + clientTypes + ", tags=" + tags + ", tagRelation="
+        + tagRelation + ", sentLogs=" + sentLogs + ", jobState=" + jobState + ", pushType=" + pushType + ", keyValue="
+        + keyValue + ", interval=" + interval + ", clientType=" + clientType + ", sendState=" + sendState
+        + ", userScope=" + userScope + ", sendDate=" + sendDate + ", target=" + target + ", cronExp=" + cronExp
+        + ", useYn=" + useYn + ", startTime=" + startTime + ", tirggerName=" + tirggerName + ", nextFireTime="
+        + nextFireTime + ", previousFireTime=" + previousFireTime + ", cronExpression=" + cronExpression + ", userId="
+        + userId + ", channelId=" + channelId + ", appId=" + appId + ", appKey=" + appKey + ", secretKey=" + secretKey
+        + ", platForm=" + platForm + "]";
   }
 
   public Push clone() {

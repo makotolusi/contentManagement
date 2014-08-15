@@ -31,32 +31,4 @@
     <property name="dataSource" ref="dataSource" />
   </bean>
   <tx:annotation-driven transaction-manager="transactionManager" />
-  
-  <bean id="dataSourceStrategy" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
-    <property name="description" value="DataSource for SkyCloudVNS" />
-    <property name="driverClass" value="${jdbc.driverClassName}" />
-    <property name="jdbcUrl" value="${jdbc.strategy.url}" />
-    <property name="user" value="${jdbc.strategy.username}" />
-    <property name="password" value="${jdbc.strategy.password}" />
-    <property name="minPoolSize" value="${c3p0.minPoolSize}" />
-    <property name="maxPoolSize" value="${c3p0.maxPoolSize}" />
-    <property name="maxStatements" value="${c3p0.maxStatements}" />
-    <property name="initialPoolSize" value="${c3p0.initialPoolSize}" />
-    <property name="acquireIncrement" value="${c3p0.acquireIncrement}" />
-    <property name="maxIdleTime" value="${c3p0.maxIdleTime}" />
-    <property name="idleConnectionTestPeriod" value="${c3p0.idleConnectionTestPeriod}" />
-    <!-- 
-	     <property name="automaticTestTable" value="${c3p0.automaticTestTable}" />
-     -->
-    <property name="preferredTestQuery" value="${c3p0.preferredTestQuery}" />
-    <property name="testConnectionOnCheckin" value="${c3p0.testConnectionOnCheckin}" />
-  </bean>
-
-  <bean id="transactionManagerStrategy" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-    <property name="dataSource" ref="dataSourceStrategy" />
-  </bean>
-  <bean id="jdbcTemplateStrategy" class="org.springframework.jdbc.core.JdbcTemplate">
-    <property name="dataSource" ref="dataSourceStrategy" />
-  </bean>
-  <tx:annotation-driven transaction-manager="transactionManagerStrategy" />
 </beans>
