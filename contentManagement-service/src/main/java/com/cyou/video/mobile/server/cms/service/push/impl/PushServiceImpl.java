@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -30,6 +30,7 @@ import com.cyou.video.mobile.server.cms.model.VerifyException;
 import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
+import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.cyou.video.mobile.server.common.Constants;
 import com.cyou.video.mobile.server.common.utils.HttpUtil;
 import com.cyou.video.mobile.server.common.utils.JacksonUtil;
@@ -44,11 +45,8 @@ public class PushServiceImpl implements PushService {
 
   private Logger logger = LoggerFactory.getLogger(PushServiceImpl.class);
 
-  @Value("${jobDomain}")
-  private String jobDomain;
-
   @Autowired
-  PushInterface baiduPush;
+  private SystemConfigService systemConfigService;
 
   @Autowired
   PushInterface xingePush;
@@ -135,11 +133,12 @@ public class PushServiceImpl implements PushService {
    * @throws IOException
    */
   @Override
-  public void postNewJob(String pushId, String cronExpress) throws Exception {
+  public JSONObject postNewJob(String pushId, String cronExpress) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("expression", cronExpress);
     params.put("pushId", pushId);
-    HttpUtil.syncPost(jobDomain + "/job/push/newJob", params, null);
+    String str = HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/newJob", params, null);
+    return new JSONObject(str);
   }
 
   /**
@@ -150,10 +149,12 @@ public class PushServiceImpl implements PushService {
    * @return
    * @throws Exception
    */
-  private String deleteJob(String pushId) throws Exception {
+  @Override
+  public JSONObject deleteJob(String pushId) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
-    return HttpUtil.syncPost(jobDomain + "/job/push/deleteJob", params, null);
+    String str= HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/deleteJob", params, null);
+    return new JSONObject(str);
   }
 
   /**
@@ -167,7 +168,7 @@ public class PushServiceImpl implements PushService {
   private String pauseJob(String pushId) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
-    return HttpUtil.syncPost(jobDomain + "/job/push/pauseJob", params, null);
+    return HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/pauseJob", params, null);
   }
 
   /**
@@ -181,7 +182,7 @@ public class PushServiceImpl implements PushService {
   private String resumeJob(String pushId) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
-    return HttpUtil.syncPost(jobDomain + "/job/push/resumeJob", params, null);
+    return HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/resumeJob", params, null);
   }
 
   /**
@@ -198,7 +199,7 @@ public class PushServiceImpl implements PushService {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
     params.put("expression", expression + "");
-    return HttpUtil.syncPost(jobDomain + "/job/push/updateTrigger", params, null);
+    return HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/updateTrigger", params, null);
   }
 
   /**
@@ -212,7 +213,8 @@ public class PushServiceImpl implements PushService {
   public Map<String, String> postGetTriggerInfo(String pushId) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
-    String result = HttpUtil.syncPost(jobDomain + "/job/push/getTriggerInfo", params, null);
+    String result = HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/getTriggerInfo", params,
+        null);
     if(StringUtils.isEmpty(result)) {
       logger.info("job return msg is blank push id is " + pushId);
       return null;
@@ -344,12 +346,10 @@ public class PushServiceImpl implements PushService {
   }
 
   @Override
-  public void deletePush(String id, int type) throws Exception {
-    if(type == 0) this.deleteJob(id);
+  public void deletePush(String id) throws Exception {
     Push push = new Push();
     push.setId(id);
     mongoTemplate.remove(push);
-
   }
 
   @Override
@@ -361,7 +361,7 @@ public class PushServiceImpl implements PushService {
   @Override
   public void autoPush(Push push) throws Exception {
     push.setPushType(PUSH_TYPE.AUTO);
-    baiduPush.pushTag(push);
+    xingePush.pushTag(push);
   }
 
   public void autoPush(String title, String content, CLIENT_TYPE clientType, String gameCode, String serviceId)
@@ -373,6 +373,7 @@ public class PushServiceImpl implements PushService {
     push.setPushType(PUSH_TYPE.AUTO);
     this.autoPush(push);
   }
+
   @Override
   public Push pushInfo(Push push) throws Exception {
     switch(push.getUserScope()) {

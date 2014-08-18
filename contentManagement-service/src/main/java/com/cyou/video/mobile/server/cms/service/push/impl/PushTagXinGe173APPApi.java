@@ -28,7 +28,7 @@ import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.model.user.UserToken;
 import com.cyou.video.mobile.server.cms.model.user.UserTokenBindXinge;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
-import com.cyou.video.mobile.server.cms.service.push.SystemConfigService;
+import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.mongodb.WriteResult;
 import com.tencent.xinge.TagTokenPair;
 

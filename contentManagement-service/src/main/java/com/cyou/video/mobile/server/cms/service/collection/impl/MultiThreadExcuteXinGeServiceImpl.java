@@ -26,7 +26,7 @@ import com.cyou.video.mobile.server.cms.service.collection.TimeFlagService;
 import com.cyou.video.mobile.server.cms.service.push.AppSelectService;
 import com.cyou.video.mobile.server.cms.service.push.PushTagXinGe173APPService;
 import com.cyou.video.mobile.server.cms.service.push.PushTagXinGeService;
-import com.cyou.video.mobile.server.cms.service.push.SystemConfigService;
+import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.cyou.video.mobile.server.common.Constants;
 
 /**

@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +36,9 @@ import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
 import com.cyou.video.mobile.server.cms.service.push.PushTagService;
-import com.cyou.video.mobile.server.cms.service.push.SystemConfigService;
 import com.cyou.video.mobile.server.cms.service.push.impl.PushServiceImpl;
 import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
+import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.cyou.video.mobile.server.common.Constants;
 
 /**
@@ -70,8 +71,7 @@ public class PushController {
     try {
       model.put("source", CONTENT_SOURCE.values());
       model.put("appId", reques.getParameter("appId"));
-      if(systemConfigService.getSystemConfigByConfigKey("sys_wangyoubaobei_app_id")
-          .equals(reques.getParameter("appId")))// 网游宝贝
+      if(systemConfigService.getByKey("sys_wangyoubaobei_app_id").equals(reques.getParameter("appId")))// 网游宝贝
       {
         COLLECTION_ITEM_TYPE[] t = new COLLECTION_ITEM_TYPE[]{COLLECTION_ITEM_TYPE.NEWS,
             COLLECTION_ITEM_TYPE.NEWS_LIST_PAGE, COLLECTION_ITEM_TYPE.GAME, COLLECTION_ITEM_TYPE.GIFT,
@@ -165,7 +165,7 @@ public class PushController {
         else {
           switch(push.getPushType()) {
             case IMMEDIATE :
-              push = pushService.pushInfo(push);
+//              push = pushService.pushInfo(push);
               if(push.getSendState() == PUSH_SEND_STATE.FAIL)
                 model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " msg : " + push.getSentLogs());
               else {
@@ -175,8 +175,15 @@ public class PushController {
               break;
             case TIMING :
               // 调用cms-job创建新quartz任务
-              pushService.postNewJob(push.getId(), push.getCronExp());
-              model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+              JSONObject obj = pushService.postNewJob(push.getId(), push.getCronExp());
+              if(obj.getBoolean("success")) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+              }
+              else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                model.put("message", obj.getString("msg"));
+              }
               break;
             case AUTO :
               model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
@@ -194,7 +201,6 @@ public class PushController {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return model;
     }
-    response.setStatus(HttpServletResponse.SC_OK);
     return model;
   }
 
@@ -379,7 +385,7 @@ public class PushController {
    * @param model
    * @return
    */
-  @RequestMapping(value = "auto/{id}/status", method = RequestMethod.POST)
+  @RequestMapping(value = "/auto/{id}/status", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap updateAutoPushJobStatus(@PathVariable("id")
   String id, @RequestParam("status")
@@ -404,17 +410,33 @@ public class PushController {
    * @param model
    * @return
    */
-  @RequestMapping(value = "{id}/{type}/delete", method = RequestMethod.POST)
+  @RequestMapping(value = "/{id}/{type}/delete", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap deletePush(@PathVariable("id")
   String id, @PathVariable("type")
-  int type, ModelMap model) {
+  PUSH_TYPE type, ModelMap model, HttpServletResponse response) {
     try {
-      pushService.deletePush(id, type);
+      if(type == PUSH_TYPE.TIMING) {
+        JSONObject obj = pushService.deleteJob(id);
+        if(obj.getBoolean("success")) {
+          pushService.deletePush(id);
+          response.setStatus(HttpServletResponse.SC_OK);
+          model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+        }
+        else {
+          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+          model.put("message", obj.getString("msg"));
+        }
+      }
+      else {
+        pushService.deletePush(id);
+        response.setStatus(HttpServletResponse.SC_OK);
+      }
       model.addAttribute("message", "SUCCESS");
     }
     catch(Exception e) {
       logger.debug("delete job failed " + e.getMessage());
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       model.addAttribute("message", e.getMessage());
     }
 

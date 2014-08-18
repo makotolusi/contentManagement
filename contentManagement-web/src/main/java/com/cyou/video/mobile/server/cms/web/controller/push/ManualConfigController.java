@@ -29,7 +29,7 @@ import com.cyou.video.mobile.server.cms.service.collection.MultiThreadExcuteXinG
 import com.cyou.video.mobile.server.cms.service.push.AppSelectService;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushTagService;
-import com.cyou.video.mobile.server.cms.service.push.SystemConfigService;
+import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.cyou.video.mobile.server.common.Constants;
 
 /**
