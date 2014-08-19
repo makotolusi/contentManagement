@@ -31,6 +31,7 @@ import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
 import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
+import com.cyou.video.mobile.server.cms.service.utils.DateUtils;
 import com.cyou.video.mobile.server.common.Constants;
 import com.cyou.video.mobile.server.common.utils.HttpUtil;
 import com.cyou.video.mobile.server.common.utils.JacksonUtil;
@@ -153,7 +154,7 @@ public class PushServiceImpl implements PushService {
   public JSONObject deleteJob(String pushId) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
-    String str= HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/deleteJob", params, null);
+    String str = HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/deleteJob", params, null);
     return new JSONObject(str);
   }
 
@@ -252,6 +253,11 @@ public class PushServiceImpl implements PushService {
               push.setStartTime(map.get("startTime"));
               push.setPreviousFireTime(map.get("previousFireTime"));
               push.setNextFireTime(map.get("nextFireTime"));
+              if(org.springframework.util.StringUtils.isEmpty(map.get("nextFireTime"))){
+                push.setJobState(PUSH_JOB_STATE.DISABLE);
+                push.setJobState(PUSH_JOB_STATE.DISABLE);
+                this.updateJobStateById(push);
+              }
               push.setCronExpression(map.get("cronExpression"));
             }
           }
@@ -345,6 +351,17 @@ public class PushServiceImpl implements PushService {
     }
   }
 
+
+  @Override
+  public void updateJobStateById(Push push) {
+    try {
+      mongoTemplate.updateFirst(new Query().addCriteria(new Criteria("id").is(push.getId())),
+          new Update().set("jobState", push.getJobState()), Push.class);
+    }
+    catch(Exception e) {
+      logger.error("update send state erro" + e.getMessage());
+    }
+  }
   @Override
   public void deletePush(String id) throws Exception {
     Push push = new Push();

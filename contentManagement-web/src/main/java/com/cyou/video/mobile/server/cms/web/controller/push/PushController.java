@@ -177,6 +177,8 @@ public class PushController {
               // 调用cms-job创建新quartz任务
               JSONObject obj = pushService.postNewJob(push.getId(), push.getCronExp());
               if(obj.getBoolean("success")) {
+                push.setJobState(PUSH_JOB_STATE.ENABLE);
+                pushService.updateJobStateById(push);
                 response.setStatus(HttpServletResponse.SC_OK);
                 model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
               }

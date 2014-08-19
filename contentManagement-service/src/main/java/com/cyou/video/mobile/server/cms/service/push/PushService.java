@@ -157,4 +157,10 @@ public interface PushService {
    * @throws Exception
    */
   void deletePush(String id) throws Exception;
+
+  /**
+   * 更新任务状态
+   * @param push
+   */
+  void updateJobStateById(Push push);
 }
