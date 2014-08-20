@@ -35,7 +35,6 @@ import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 import com.cyou.video.mobile.server.cms.service.push.impl.PushServiceImpl;
 import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
 import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
@@ -53,9 +52,6 @@ public class PushController {
 
   @Autowired
   PushService pushService;
-
-  @Autowired
-  PushTagService pushTagService;
 
   @Autowired
   AutoPushService autoPushServiceImpl;
@@ -247,51 +243,51 @@ public class PushController {
     return model;
   }
 
-  /**
-   * 再次发送(默认类型是立即发送的推送任务)
-   * 
-   * @param push
-   *          推送对象实例
-   * @param model
-   * @return
-   */
-  @RequestMapping(value = "sendAgain", method = RequestMethod.POST)
-  @ResponseBody
-  public ModelMap sendAgain(@RequestBody
-  Push push, ModelMap model) {
-    if(push.getContentTy() != null) push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
-    if(!push.getTags().isEmpty()) {
-      push.setUserScope(PUSH_USER_SCOPE.TAG);
-    }
-    // 立即推送
-    if(push.getPushType() == PUSH_TYPE.AUTO) {
-      pushService.updatePush(push);
-      model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-      return model;
-    }
-    else {
-      push = pushService.pushInfo(push);
-      try {
-        push.setId(null);
-        String pushId = pushService.createPush(push);
-        push.setId(pushId);
-        if(push.getSendState() == PUSH_SEND_STATE.FAIL) {
-          model.put("message", push.getSentLogs());
-        }
-        else {
-          model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-        }
-        return model;
-      }
-      catch(Exception e) {
-        e.printStackTrace();
-        logger.error("insert push object failed!!");
-        model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " " + e.getMessage());
-        return model;
-      }
-    }
-
-  }
+//  /**
+//   * 再次发送(默认类型是立即发送的推送任务)
+//   * 
+//   * @param push
+//   *          推送对象实例
+//   * @param model
+//   * @return
+//   */
+//  @RequestMapping(value = "sendAgain", method = RequestMethod.POST)
+//  @ResponseBody
+//  public ModelMap sendAgain(@RequestBody
+//  Push push, ModelMap model) {
+//    if(push.getContentTy() != null) push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
+//    if(!push.getTags().isEmpty()) {
+//      push.setUserScope(PUSH_USER_SCOPE.TAG);
+//    }
+//    // 立即推送
+//    if(push.getPushType() == PUSH_TYPE.AUTO) {
+//      pushService.updatePush(push);
+//      model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+//      return model;
+//    }
+//    else {
+//      push = pushService.pushInfo(push);
+//      try {
+//        push.setId(null);
+//        String pushId = pushService.createPush(push);
+//        push.setId(pushId);
+//        if(push.getSendState() == PUSH_SEND_STATE.FAIL) {
+//          model.put("message", push.getSentLogs());
+//        }
+//        else {
+//          model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+//        }
+//        return model;
+//      }
+//      catch(Exception e) {
+//        e.printStackTrace();
+//        logger.error("insert push object failed!!");
+//        model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " " + e.getMessage());
+//        return model;
+//      }
+//    }
+//
+//  }
 
   /**
    * 修改定时推送任务信息

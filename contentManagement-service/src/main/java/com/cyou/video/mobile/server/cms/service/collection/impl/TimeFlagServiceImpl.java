@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import com.cyou.video.mobile.server.cms.model.collection.PushTagLastUpdateTime;
 import com.cyou.video.mobile.server.cms.service.collection.ClientLogCollectionService;
 import com.cyou.video.mobile.server.cms.service.collection.TimeFlagService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 
 /**
  * 
@@ -27,9 +26,6 @@ public class TimeFlagServiceImpl implements TimeFlagService {
 
   @Autowired
   ClientLogCollectionService clientLogCollectionService;
-
-  @Autowired
-  PushTagService pushTagService;
 
   @Autowired
   ThreadPoolTaskExecutor taskExecutor;

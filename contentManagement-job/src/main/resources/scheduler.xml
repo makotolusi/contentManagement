@@ -25,9 +25,9 @@
 		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
 		<property name="schedulerContextAsMap">
 			<map>
-				<!-- spring 管理的service需要放到这里，才能够注入成功 -->
+				<!-- spring 管理的service需要放到这里，才能够注入成功
 				<description>schedulerContextAsMap</description>
-				<entry key="multiThreadExcuteService" value-ref="multiThreadExcuteService" />
+				<entry key="multiThreadExcuteService" value-ref="multiThreadExcuteService" /> -->
 			</map>
 		</property>
 		<property name="triggers">

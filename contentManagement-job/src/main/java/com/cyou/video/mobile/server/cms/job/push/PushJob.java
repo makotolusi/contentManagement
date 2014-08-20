@@ -13,7 +13,6 @@ import com.cyou.video.mobile.server.cms.common.Consts;
 import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
-import com.cyou.video.mobile.server.cms.service.push.impl.BaiduPush;
 import com.cyou.video.mobile.server.cms.service.push.impl.XinGePush;
 
 @Component("pushJob")
@@ -27,7 +26,7 @@ public class PushJob implements Job {
     try {
       SchedulerContext schedulerContext = context.getScheduler().getContext();
       ApplicationContext applicationContext = (ApplicationContext) schedulerContext.get("applicationContextKey");
-      PushInterface baiduPush = (BaiduPush) applicationContext.getBean("baiduPush");
+//      PushInterface baiduPush = (BaiduPush) applicationContext.getBean("baiduPush");
       PushInterface xingePush = (XinGePush) applicationContext.getBean("xingePush");
       PushService pushService = (PushService) applicationContext.getBean("pushService");
       String pushId = context.getJobDetail().getJobDataMap().get("pushId").toString();
@@ -36,7 +35,7 @@ public class PushJob implements Job {
       switch(push.getUserScope()) {
         case ALL :
           if(Consts.PUSH_PLATFORM_TYPE.BAIDU.equals(push.getPlatForm())) {
-            push = baiduPush.pushAll(push);
+//            push = baiduPush.pushAll(push);
           }
           if(Consts.PUSH_PLATFORM_TYPE.XINGE.equals(push.getPlatForm())) {
             push = xingePush.pushAll(push);
@@ -44,7 +43,7 @@ public class PushJob implements Job {
           break;
         case TAG :
           if(Consts.PUSH_PLATFORM_TYPE.BAIDU.equals(push.getPlatForm())) {
-            push = baiduPush.pushTag(push);
+//            push = baiduPush.pushTag(push);
           }
           if(Consts.PUSH_PLATFORM_TYPE.XINGE.equals(push.getPlatForm())) {
             push = xingePush.pushTag(push);

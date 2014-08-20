@@ -24,11 +24,9 @@ import com.cyou.video.mobile.server.cms.model.collection.PushTagExcuteStateInfo;
 import com.cyou.video.mobile.server.cms.model.collection.StatisticJobLastUpdateTime;
 import com.cyou.video.mobile.server.cms.model.collection.SystemConfig;
 import com.cyou.video.mobile.server.cms.service.collection.ClientLogCollectionService;
-import com.cyou.video.mobile.server.cms.service.collection.MultiThreadExcuteService;
 import com.cyou.video.mobile.server.cms.service.collection.MultiThreadExcuteXinGeService;
 import com.cyou.video.mobile.server.cms.service.push.AppSelectService;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.cyou.video.mobile.server.common.Constants;
 
@@ -39,7 +37,7 @@ import com.cyou.video.mobile.server.common.Constants;
  * @author LUSI
  */
 @Controller
-@RequestMapping("/web/activity/manual")
+@RequestMapping("/web/manual")
 public class ManualConfigController {
 
   private Logger logger = LoggerFactory.getLogger(ManualConfigController.class);
@@ -48,17 +46,11 @@ public class ManualConfigController {
   ClientLogCollectionService clientLogCollectionService;
 
   @Autowired
-  PushTagService pushTagService;
-
-  @Autowired
   AutoPushService autoPushService;
 
   @Autowired
   AppSelectService appSelectService;
   
-  @Autowired
-  MultiThreadExcuteService multiThreadExcuteService;
-
   @Autowired
   MultiThreadExcuteXinGeService multiThreadExcuteXinGeService;
   
@@ -78,14 +70,14 @@ public class ManualConfigController {
       logger.debug("excute time : " + (time / 1000));
       m = new ModelAndView("/activity/manual", "lastPvTime", list);
       m.addObject("pushTagExcuteStateInfo", l);
-      m.addObject("threadTotal", pushTagService.getThreadTotal());
-      m.addObject("threadNumList", pushTagService.getThreadNumList());
-      m.addObject("appId",systemConfigService.getSystemConfigByConfigKey("sys_173app_id"));
+//      m.addObject("threadTotal", pushTagService.getThreadTotal());
+//      m.addObject("threadNumList", pushTagService.getThreadNumList());
+      m.addObject("appId",systemConfigService.getByKey("sys_173app_id"));
       // thread num
-      PushTagExcuteStateInfo p = pushTagService.getSysThreadNum();
-      if(p != null) {
-        m.addObject("sysThreadN", p.getThreadNum() + "");
-      }
+//      PushTagExcuteStateInfo p = pushTagService.getSysThreadNum();
+//      if(p != null) {
+//        m.addObject("sysThreadN", p.getThreadNum() + "");
+//      }
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -96,7 +88,37 @@ public class ManualConfigController {
     return m;
 
   }
+  
+  @RequestMapping(value = "/joblog/lastMapReduceTime", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap lastMapReduceTime(ModelMap model) {
+    try {
+      model.put("data", clientLogCollectionService.getStatisticJobLastUpdateTime());
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      model.put("message", "lastMapReduceTime  exception " + e.getMessage());
+      logger.error("manual lastMapReduceTime exception " + e.getMessage());
+    }
+    return model;
+  }
 
+  @RequestMapping(value = "/joblog/tagLog", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap getPushTagExcuteStateInfo(ModelMap model) {
+    try {
+      model.put("data", clientLogCollectionService.getPushTagExcuteStateInfo());
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      model.put("message", "tagLog  exception " + e.getMessage());
+      logger.error("manual tagLog exception " + e.getMessage());
+    }
+
+    model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+    return model;
+  }
+  
   @RequestMapping(value = "/syncApp", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap syncApp(@RequestBody
@@ -111,21 +133,6 @@ public class ManualConfigController {
     }
 
     model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-    return model;
-  }
-
-  @RequestMapping(value = "/pvAll", method = RequestMethod.POST)
-  @ResponseBody
-  public ModelMap mongo2SQLDBIncManual(@RequestBody
-  Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
-    try {
-      clientLogCollectionService.statisticsPv();
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-      logger.error("manual static exception " + e.getMessage());
-    }
-
     return model;
   }
 
@@ -144,11 +151,11 @@ public class ManualConfigController {
   public ModelMap sendPushTags(@RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
-      if(pushTagService.existRunningThread()) {
-        model.put("message", "other thread is running!");
-        return model;
-      }
-      return multiThreadExcuteService.sendPushTags(params, model);
+//      if(pushTagService.existRunningThread()) {
+//        model.put("message", "other thread is running!");
+//        return model;
+//      }
+      return multiThreadExcuteXinGeService.sendPushTags(params, model);
     }
     else {
       model.put("message", "请输入密码");
@@ -189,10 +196,10 @@ public class ManualConfigController {
   public ModelMap sendPushTagsXG(@RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
-      if(pushTagService.existRunningThread()) {
-        model.put("message", "other thread is running!");
-        return model;
-      }
+//      if(pushTagService.existRunningThread()) {
+//        model.put("message", "other thread is running!");
+//        return model;
+//      }
       return multiThreadExcuteXinGeService.sendPushTags(params, model);
     }
     else {
@@ -216,10 +223,10 @@ public class ManualConfigController {
   public ModelMap sendWalkThroughAppTags(@RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
-      if(pushTagService.existRunningThread()) {
-        model.put("message", "other thread is running!");
-        return model;
-      }
+//      if(pushTagService.existRunningThread()) {
+//        model.put("message", "other thread is running!");
+//        return model;
+//      }
       return multiThreadExcuteService.sendWalkThroughAppTags(params, model);
     }
     else {
@@ -243,11 +250,11 @@ public class ManualConfigController {
   public ModelMap sendCVTags(@RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
-      if(pushTagService.existRunningThread()) {
-        model.put("message", "other thread is running!");
-        return model;
-      }
-      return multiThreadExcuteService.sendPushTagsChannel(params, model);
+//      if(pushTagService.existRunningThread()) {
+//        model.put("message", "other thread is running!");
+//        return model;
+//      }
+      return multiThreadExcuteXinGeService.sendPushTagsChannel(params, model);
     }
     else {
       model.put("message", "请输入密码");
@@ -270,10 +277,10 @@ public class ManualConfigController {
   public ModelMap sendCVTagsXG(@RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
-      if(pushTagService.existRunningThread()) {
-        model.put("message", "other thread is running!");
-        return model;
-      }
+//      if(pushTagService.existRunningThread()) {
+//        model.put("message", "other thread is running!");
+//        return model;
+//      }
       return multiThreadExcuteXinGeService.sendPushTagsChannel(params, model);
     }
     else {
@@ -315,7 +322,7 @@ public class ManualConfigController {
   String token, @RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
-      model = pushTagService.queryUserTag(token, model);
+//      model = pushTagService.queryUserTag(token, model);
     }
     catch(Exception e) {
       model.put("message", "manual updateLogInfo exception " + e.getMessage());
@@ -340,7 +347,7 @@ public class ManualConfigController {
   String token, @RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
-      model = pushTagService.deleteUserTag(token, model);
+//      model = pushTagService.deleteUserTag(token, model);
     }
     catch(Exception e) {
       model.put("message", "manual updateLogInfo exception " + e.getMessage());
@@ -365,7 +372,7 @@ public class ManualConfigController {
   String name, @RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
-      pushTagService.removePushTagLogByName(name);
+//      pushTagService.removePushTagLogByName(name);
       model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -374,42 +381,6 @@ public class ManualConfigController {
     }
     return model;
   }
-
-  /**
-   * 查看百度标签
-   * 
-   * @param params
-   * @param psw
-   * @param request
-   * @param response
-   * @param model
-   * @return
-   */
-  @RequestMapping(value = "/makeTag", method = RequestMethod.POST)
-  @ResponseBody
-  public ModelMap makeTag(String token, @RequestBody
-  Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
-    return multiThreadExcuteService.makeTag(model);
-  }
-
-  // /**
-  // * 自动推送测试
-  // *
-  // * @param params
-  // * @param psw
-  // * @param request
-  // * @param response
-  // * @param model
-  // * @return
-  // */
-  // @RequestMapping(value = "/autoPush", method = RequestMethod.POST)
-  // @ResponseBody
-  // public ModelMap autoPush(String token, @RequestBody
-  // Map<String, Object> params, HttpServletRequest request, HttpServletResponse
-  // response, ModelMap model) {
-  // autoPushService.pushWalkthrough("", "3607988", "xxxxxxxxxxxxxxx");
-  // return model;
-  // }
 
   /**
    * 设置系统线程参数
@@ -427,7 +398,7 @@ public class ManualConfigController {
   int sysThreadN, @RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
-      pushTagService.setSysThreadNum(sysThreadN);
+//      pushTagService.setSysThreadNum(sysThreadN);
       model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -455,7 +426,7 @@ public class ManualConfigController {
       SystemConfig sc=new SystemConfig();
       sc.setKey("appId");
       sc.setValue(params.get("appId").toString());
-      systemConfigService.updateSystemConfigByConfigValue(sc);
+      systemConfigService.save(sc);
       model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -480,7 +451,7 @@ public class ManualConfigController {
   public ModelMap updateWaiting( @RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
-      pushTagService.updateWaiting();
+//      pushTagService.updateWaiting();
       model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

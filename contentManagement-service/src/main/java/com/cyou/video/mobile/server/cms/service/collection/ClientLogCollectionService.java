@@ -23,123 +23,110 @@ import com.cyou.video.mobile.server.cms.model.collection.UserItemOperatePvMongo;
  */
 public interface ClientLogCollectionService {
 
-	/**
-	 * 终端日志收集
-	 * 
-	 * @param collections
-	 *            日志
-	 * @return
-	 */
-	public int collectLogInfo(List collections);
+  /**
+   * 终端日志收集
+   * 
+   * @param collections
+   *          日志
+   * @return
+   */
+  public int collectLogInfo(List collections);
 
-	public int collectLogInfoS(List<LinkedHashMap<String, String>> collections);
+  /**
+   * 
+   * @param params
+   * @return
+   */
+  Pagination getClientLogCollection(Map<String, Object> params) throws Exception;
 
-	/**
-	 * 统计pv
-	 * 
-	 * @return
-	 */
-	void statisticsPv();
+  Pagination getPVByName(Map<String, Object> params) throws Exception;
 
+  /**
+   * 最新更新日期
+   * 
+   * @param params
+   * @return
+   * @throws Exception
+   */
+  List<StatisticJobLastUpdateTime> getPVLastUpdateTime(Map<String, Object> params) throws Exception;
 
-	/**
-	 * 
-	 * @param params
-	 * @return
-	 */
-	Pagination getClientLogCollection(Map<String, Object> params)throws Exception ;
+  /**
+   * 得到tag的name
+   * 
+   * @param params
+   * @return
+   * @throws Exception
+   */
+  Pagination getTagNameAndPV(Map<String, Object> params) throws Exception;
 
+  /**
+   * 获得最新统计时间
+   * 
+   * @return
+   */
+  List<StatisticJobLastUpdateTime> getStatisticJobLastUpdateTime();
 
-	Pagination getPVByName(Map<String, Object> params)throws Exception ;
+  /**
+   * 得到集合count
+   * 
+   * @param name
+   * @return
+   */
+  Long getCount(String name);
 
-	/**
-	 *  最新更新日期
-	 * @param params
-	 * @return
-	 * @throws Exception
-	 */
-	 List<StatisticJobLastUpdateTime> getPVLastUpdateTime(
-			Map<String, Object> params) throws Exception;
+  /**
+   * 得到标签时间戳
+   * 
+   * @param tagLastUpdateTime
+   * @return
+   */
+  int updatePushTagLastUpdateTime(PushTagLastUpdateTime tagLastUpdateTime);
 
-	/**
-	 * 得到tag的name
-	 * @param params
-	 * @return
-	 * @throws Exception
-	 */
-	Pagination getTagNameAndPV(Map<String, Object> params) throws Exception;
+  /**
+   * 得到推送时间戳
+   * 
+   * @param collectionName
+   * @return
+   */
+  PushTagLastUpdateTime getPushTagLastUpdateTime(String collectionName);
 
-	void getTagName(ClientLogCollection clientLogCollection) throws Exception;
+  /**
+   * 根据查询count
+   * 
+   * @param query
+   * @param name
+   * @return
+   */
+  Long getCount(Query query, String name);
 
-	/**
-	 * get userid of tag
-	 * @param params
-	 * @return
-	 * @throws Exception
-	 */
-	List<UserItemOperatePvMongo> getUserIdByTag(Map<String, Object> params)
-			throws Exception;
+  /**
+   * 得到tag发送日志
+   * 
+   * @return
+   */
+  List getPushTagExcuteStateInfo();
 
-	/**
-	 * 获得最新统计时间
-	 * @return
-	 */
-	List<StatisticJobLastUpdateTime> getStatisticJobLastUpdateTime();
+  /**
+   * 得到数据总数
+   * 
+   * @param params
+   * @return
+   * @throws Exception
+   */
 
-	/**
-	 * 得到集合count
-	 * @param name
-	 * @return
-	 */
-	Long getCount(String name);
+  int getTotalNum(String collectionName) throws Exception;
 
-	/**
-	 * 得到标签时间戳
-	 * @param tagLastUpdateTime
-	 * @return
-	 */
-	int updatePushTagLastUpdateTime(PushTagLastUpdateTime tagLastUpdateTime);
-
-	/**
-	 * 得到推送时间戳
-	 * @param collectionName
-	 * @return
-	 */
-	PushTagLastUpdateTime getPushTagLastUpdateTime(String collectionName);
-
-	/**
-	 * 根据查询count
-	 * @param query
-	 * @param name
-	 * @return
-	 */
-	Long getCount(Query query, String name);
-
-	
-	/**
-	 * 得到tag发送日志
-	 * @return
-	 */
-	List getPushTagExcuteStateInfo();
-
-	/**
-	 * 得到数据总数
-	 * @param params
-	 * @return
-	 * @throws Exception
-	 */
-	
-	int getTotalNum(String collectionName) throws Exception;
-
-	/**
-	 * 包名转json
-	 * @param pkgs
-	 * @return
-	 */
-  List<ClientLogCollection> gameAppFilter(String pkg,COLLECTION_OPERATOR_TYPE opType,String token);
+  /**
+   * 包名转json
+   * 
+   * @param pkgs
+   * @return
+   */
+  List<ClientLogCollection> gameAppFilter(String pkg, COLLECTION_OPERATOR_TYPE opType, String token);
 
   /***
    * 绑定信鸽
+   * 
    * @param params
    * @throws Exception
    */

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.cyou.video.mobile.server.cms.model.Pagination;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
+import com.cyou.video.mobile.server.cms.model.sys.ContentTypeActionAndTag;
 
 
 /**
@@ -47,4 +48,33 @@ public interface ContentTypeService {
    * @throws Exception
    */
   ContentType getByIndex(String index) throws Exception;
+
+  /***
+   * list
+   * @param params
+   * @return
+   * @throws Exception
+   */
+  Pagination listContentTypeAction(Map<String, Object> params) throws Exception;
+
+  /**
+   * create
+   * @param action
+   * @throws Exception
+   */
+  void createContentTypeAction(ContentTypeActionAndTag action) throws Exception;
+
+  /**
+   * update
+   * @param action
+   * @throws Exception
+   */
+  void updateContentTypeAction(ContentTypeActionAndTag action) throws Exception;
+
+  /**
+   * 删除
+   * @param contentType
+   * @throws Exception
+   */
+  void deleteAction(ContentTypeActionAndTag contentType) throws Exception;
 }

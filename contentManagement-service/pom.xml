@@ -13,27 +13,21 @@
 	<name>content management system service</name>
 
 	<dependencies>
-	    
-		<!-- 百度云推送的依赖 -->
-		<dependency>
-			<groupId>com.baidu.yun</groupId>
-			<artifactId>bccs-api-lib</artifactId>
-			<version>1.1</version>
-		</dependency>
 		<!-- xinge -->
 		<dependency>
 			<groupId>com.xinge.push</groupId>
 			<artifactId>xinge</artifactId>
 			<version>1.1</version>
 		</dependency>
-
-		<!-- mongo的依赖 -->
 		<dependency>
 			<groupId>com.cyou.video.mobile</groupId>
-			<artifactId>video-mobile-cms-dao-mongo</artifactId>
+			<artifactId>video-mobile-cms-model</artifactId>
 			<version>1.3-SNAPSHOT</version>
 		</dependency>
-
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -88,7 +82,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>

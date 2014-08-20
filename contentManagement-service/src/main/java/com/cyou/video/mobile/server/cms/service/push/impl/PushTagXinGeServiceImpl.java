@@ -9,17 +9,20 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.cyou.video.mobile.server.cms.common.Consts.CLIENT_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_OPERATOR_TYPE;
 import com.cyou.video.mobile.server.cms.model.collection.ClientLogBestWalkthroughCollection;
+import com.cyou.video.mobile.server.cms.model.collection.PushTagExcuteStateInfo;
 import com.cyou.video.mobile.server.cms.model.collection.UserItemOperatePvMongo;
 import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.model.user.UserToken;
-import com.cyou.video.mobile.server.cms.mongo.dao.collection.PushTagLogDao;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushTagXinGeService;
 import com.tencent.xinge.TagTokenPair;
@@ -37,13 +40,11 @@ public class PushTagXinGeServiceImpl implements PushTagXinGeService {
   @Autowired
   private MongoTemplate mongoTemplate;
 
-//  @Autowired
-//  private UserTokenService userTokenService;
+  // @Autowired
+  // private UserTokenService userTokenService;
 
   @Autowired
   private PushInterface xingePush;
-
-  private PushTagLogDao pushTagLogDao;
 
   @Autowired
   PushTagXinGe173APPApi pushTagXinGe173APPApi;
@@ -122,7 +123,7 @@ public class PushTagXinGeServiceImpl implements PushTagXinGeService {
         }
         else {
           // set xinge id
-          UserToken n =null;// userTokenService.getToken(uTag.getUid());
+          UserToken n = null;// userTokenService.getToken(uTag.getUid());
           if(n == null) {
             continue;
           }
@@ -170,6 +171,10 @@ public class PushTagXinGeServiceImpl implements PushTagXinGeService {
 
   private void inc(String threadName, int setNum) {
     int incc = 50;
-    if(setNum != 0 && setNum % incc == 0) pushTagLogDao.inc(threadName, incc);
+    if(setNum != 0 && setNum % incc == 0) {
+      mongoTemplate.findAndModify(new Query(new Criteria("threadName").is(threadName)),
+          new Update().inc("threadNum", setNum), FindAndModifyOptions.options().upsert(true),
+          PushTagExcuteStateInfo.class, "PushTagThreadInfo");
+    }
   }
 }

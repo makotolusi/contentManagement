@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.ModelMap;
 
 import com.cyou.video.mobile.server.cms.service.collection.MultiThreadExcuteService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 
 /**
  * 数据收集后进行统计job
@@ -26,7 +25,7 @@ import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 public class LogCollectionStatisticJob extends QuartzJobBean implements
 		StatefulJob {
 
-	@Autowired
+//	@Autowired
 	MultiThreadExcuteService multiThreadExcuteService;
 	
 	private Logger LOGGER = LoggerFactory.getLogger(LogCollectionStatisticJob.class);
@@ -34,23 +33,23 @@ public class LogCollectionStatisticJob extends QuartzJobBean implements
 	@Override
 	protected void executeInternal(JobExecutionContext context)
 			throws JobExecutionException {
-		LOGGER.info("updateLogInfo job start ==================");
-		Map<String, Object> params = new HashMap<String, Object>();
-		ModelMap model = new ModelMap();
-		try {
-			multiThreadExcuteService = (MultiThreadExcuteService) context
-					.getScheduler().getContext()
-					.get("multiThreadExcuteService");
-			multiThreadExcuteService.syncApp();
-			multiThreadExcuteService.sendPushTags(params, model);
-			multiThreadExcuteService.sendPushTagsChannel(params, model);
-			multiThreadExcuteService.sendWalkThroughAppTags(params, model);
-		} catch (SchedulerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			LOGGER.error("updateLogInfo job exception ================== is "
-					+ e.getMessage());
-		}
+//		LOGGER.info("updateLogInfo job start ==================");
+//		Map<String, Object> params = new HashMap<String, Object>();
+//		ModelMap model = new ModelMap();
+//		try {
+//			multiThreadExcuteService = (MultiThreadExcuteService) context
+//					.getScheduler().getContext()
+//					.get("multiThreadExcuteService");
+//			multiThreadExcuteService.syncApp();
+//			multiThreadExcuteService.sendPushTags(params, model);
+//			multiThreadExcuteService.sendPushTagsChannel(params, model);
+//			multiThreadExcuteService.sendWalkThroughAppTags(params, model);
+//		} catch (SchedulerException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			LOGGER.error("updateLogInfo job exception ================== is "
+//					+ e.getMessage());
+//		}
 
 	}
 }

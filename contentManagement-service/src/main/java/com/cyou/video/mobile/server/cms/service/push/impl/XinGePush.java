@@ -13,10 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import com.baidu.yun.channel.exception.ChannelClientException;
-import com.baidu.yun.channel.exception.ChannelServerException;
-import com.baidu.yun.channel.model.TagInfo;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_SEND_STATE;
 import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.cyou.video.mobile.server.cms.model.push.PushApp;
@@ -178,26 +174,27 @@ public class XinGePush implements PushInterface {
     MessageIOS message = iosMessage(push);
     List<String> tagList = new ArrayList<String>();
     setTags(push, tagList);
-//    JSONObject respose = xinge.pushTags(XingeApp.DEVICE_ANDROID, tagList, push.getTagRelation(), message,
-//        ios_deployStatus);
-//    setSuccess(push, respose);
+    // JSONObject respose = xinge.pushTags(XingeApp.DEVICE_ANDROID, tagList,
+    // push.getTagRelation(), message,
+    // ios_deployStatus);
+    // setSuccess(push, respose);
     return push;
   }
 
   @Override
-  public Push pushTag(Push push) throws Exception{
-      XingeApp xinge = this.initChannel(push);
-      switch(push.getClientType()) {
-        case ANDROID :
-          push = androidPushTag(push, xinge);
-          break;
-        case IOS :
-          push = iosPushTag(push, xinge);
-          break;
-        default :
-          break;
-      }
-      return push;
+  public Push pushTag(Push push) throws Exception {
+    XingeApp xinge = this.initChannel(push);
+    switch(push.getClientType()) {
+      case ANDROID :
+        push = androidPushTag(push, xinge);
+        break;
+      case IOS :
+        push = iosPushTag(push, xinge);
+        break;
+      default :
+        break;
+    }
+    return push;
   }
 
   @Override
@@ -236,12 +233,6 @@ public class XinGePush implements PushInterface {
   public void deleteUserTag(String uid) throws Exception {
     // TODO Auto-generated method stub
 
-  }
-
-  @Override
-  public List<TagInfo> queryUserTag(String uid) throws ChannelClientException, ChannelServerException {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override

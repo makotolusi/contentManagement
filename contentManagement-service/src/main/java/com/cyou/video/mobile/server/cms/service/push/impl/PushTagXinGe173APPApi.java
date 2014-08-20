@@ -1,12 +1,18 @@
 package com.cyou.video.mobile.server.cms.service.push.impl;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -18,6 +24,7 @@ import com.cyou.video.mobile.server.cms.common.Consts;
 import com.cyou.video.mobile.server.cms.common.Consts.CLIENT_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_ITEM_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_OPERATOR_TYPE;
+import com.cyou.video.mobile.server.cms.common.Consts.GAME_PLATFORM_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_SEND_TAG_STATE;
 import com.cyou.video.mobile.server.cms.model.collection.ClientLogCollection;
 import com.cyou.video.mobile.server.cms.model.collection.PushTagExcuteStateInfo;
@@ -29,6 +36,7 @@ import com.cyou.video.mobile.server.cms.model.user.UserToken;
 import com.cyou.video.mobile.server.cms.model.user.UserTokenBindXinge;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
+import com.cyou.video.mobile.server.common.utils.HttpUtil;
 import com.mongodb.WriteResult;
 import com.tencent.xinge.TagTokenPair;
 
@@ -140,7 +148,6 @@ public class PushTagXinGe173APPApi {
         if(id.getOperatorTypeE() == COLLECTION_OPERATOR_TYPE.SUBSCRIBE) {
           return setGiftTag(value, id.getPushToken());
         }
-
       }
       if(value.getItemTypeE() == COLLECTION_ITEM_TYPE.GIFT) {
         if(id.getOperatorTypeE() == COLLECTION_OPERATOR_TYPE.VIEW) {
@@ -396,7 +403,7 @@ public class PushTagXinGe173APPApi {
    */
   public void batchTags() throws Exception {
     Push p = new Push();
-    String appId = systemConfigService.getSystemConfigByConfigKey("sys_173app_id");
+    String appId = systemConfigService.getByKey("sys_173app_id");
     if(!StringUtils.isEmpty(appId)) {
       UserItemOperatePvMongo tagResult = getTagResult();
       p.setAppId(Integer.parseInt(appId));
@@ -474,4 +481,87 @@ public class PushTagXinGe173APPApi {
     this.size = size;
   }
 
+  @Cacheable(value = "videoMobileCMSCache", key = "'gameInfo_X_' + #gameCode ")
+  public Map<String, String> getGameCodeTypeAndStatus(String gameCode, GAME_PLATFORM_TYPE type) {
+    Map<String, String> typeStatus = null;
+    if(type == null) {
+      typeStatus = mobile(gameCode);
+      if(typeStatus != null) {
+        typeStatus.put("platForm", "1");
+        return typeStatus;
+      }
+      typeStatus = pc(gameCode);
+      if(typeStatus != null) {
+        typeStatus.put("platForm", "2");
+        return typeStatus;
+      }
+    }
+    else {
+      if(type == GAME_PLATFORM_TYPE.MOBILE) {
+        return mobile(gameCode);
+      }
+      else if(type == GAME_PLATFORM_TYPE.PC) {
+        return pc(gameCode);
+      }
+    }
+    return typeStatus;
+  }
+
+  private Map<String, String> pc(String gameCode) {
+    try {
+      Map<String, String> p = new HashMap<String, String>();
+      Map<String, String> typeStatus;
+      typeStatus = new HashMap<String, String>();
+      String url = game_cate_pc + "/game/info?game_code=" + gameCode;
+      String str = HttpUtil.syncPost(url, p, null);
+      if(StringUtils.isEmpty(str)) return null;
+      JSONObject obj = new JSONObject(str).getJSONObject("data");
+      JSONArray info_status = obj.getJSONArray("game_feature");
+      typeStatus.put("name", obj.getString("game_name"));
+      JSONArray info_type = obj.getJSONArray("game_type");
+      typeStatus.put("status", getStrs(info_status).toString());
+      typeStatus.put("type", getStrs(info_type).toString());
+      typeStatus.put("gameCode", gameCode);
+      return typeStatus;
+    }
+    catch(Exception e) {
+      // e.printStackTrace();
+      return null;
+    }
+  }
+
+  private Map<String, String> mobile(String gameCode) {
+    try {
+      Map<String, String> p = new HashMap<String, String>();
+      Map<String, String> typeStatus;
+      typeStatus = new HashMap<String, String>();
+      String url = game_cate_mobile + "/apis/game/info?game_code=" + gameCode;
+      String str = HttpUtil.syncPost(url, p, null);
+      if(StringUtils.isEmpty(str)) return null;
+      JSONObject obj = new JSONObject(str).getJSONObject("data").getJSONObject(gameCode);
+      JSONArray info_status = obj.getJSONArray("info_status");
+      StringBuffer status = getStrs(info_status);
+      JSONObject info_type = obj.getJSONObject("info_type");
+      typeStatus.put("type", info_type.getString("name"));
+      typeStatus.put("status", status.toString());
+      typeStatus.put("pkg", obj.getString("info_package"));
+      typeStatus.put("name", obj.getString("info_chname"));
+      typeStatus.put("gameCode", gameCode);
+      return typeStatus;
+    }
+    catch(Exception e) {
+      // e.printStackTrace();
+      return null;
+    }
+  }
+
+  private StringBuffer getStrs(JSONArray info_status) throws JSONException {
+    Map<String, String> p = new HashMap<String, String>();
+    StringBuffer status = new StringBuffer();
+    for(int i = 0; i < info_status.length(); i++) {
+      status.append(info_status.getJSONObject(i).getString("name")).append(",");
+    }
+    if(status.length() != 0) status = status.deleteCharAt(status.length() - 1);
+    return status;
+  }
 }

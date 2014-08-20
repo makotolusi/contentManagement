@@ -31,7 +31,6 @@ import com.cyou.video.mobile.server.cms.service.push.AppSelectService;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
 
 /**
  * 自动推送
@@ -58,9 +57,6 @@ public class AutoPushServiceImpl implements AutoPushService {
 
   @Autowired
   private MongoOperations mongoTemplate;
-
-  @Autowired
-  PushTagService pushTagService;
 
   @Autowired
   AppSelectService appSelectService;
@@ -92,7 +88,7 @@ public class AutoPushServiceImpl implements AutoPushService {
       }
       push.setSendState(PUSH_SEND_STATE.FAIL);
       String gameName = null;
-      Map<String, String> typeSt = pushTagService.getGameCodeTypeAndStatus(gameCode, null);
+      Map<String, String> typeSt = pushTagXinGe173APPApi.getGameCodeTypeAndStatus(gameCode, null);
       if(typeSt != null && !StringUtils.isEmpty(typeSt.get("name"))) {
         gameName = typeSt.get("name");
         push.setTitle(pushAuto.getTitle().replaceAll("#gameName#", typeSt.get("name")));

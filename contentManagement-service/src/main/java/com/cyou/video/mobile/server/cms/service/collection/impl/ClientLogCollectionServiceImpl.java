@@ -2,11 +2,12 @@ package com.cyou.video.mobile.server.cms.service.collection.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -42,10 +44,10 @@ import com.cyou.video.mobile.server.cms.model.collection.UserItemOperatePvMongo2
 import com.cyou.video.mobile.server.cms.model.push.PushTagCollection;
 import com.cyou.video.mobile.server.cms.model.user.UserToken;
 import com.cyou.video.mobile.server.cms.model.user.UserTokenBindXinge;
-import com.cyou.video.mobile.server.cms.mongo.dao.collection.ClientLogCollectionDao;
 import com.cyou.video.mobile.server.cms.service.collection.ClientLogCollectionService;
 import com.cyou.video.mobile.server.cms.service.common.RedisTemplate;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
+import com.cyou.video.mobile.server.cms.service.push.impl.PushTagXinGe173APPApi;
+import com.cyou.video.mobile.server.common.Constants;
 import com.cyou.video.mobile.server.common.utils.HttpUtil;
 import com.cyou.video.mobile.server.common.utils.JacksonUtil;
 
@@ -56,14 +58,6 @@ import com.cyou.video.mobile.server.common.utils.JacksonUtil;
  */
 @Service("clientLogCollectionService")
 public class ClientLogCollectionServiceImpl implements ClientLogCollectionService {
-
-  private ClientLogCollectionDao clientLogCollectionDao;
-
-  @Autowired
-  private PushTagService pushTagService;
-
-//  @Autowired
-//  private UserTokenService userTokenService;
 
   @Resource(name = "redisTemplate")
   private RedisTemplate redisTemplate;
@@ -79,12 +73,16 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
   @Autowired
   private MongoOperations mongoTemplate;
 
+  @Autowired
+  PushTagXinGe173APPApi pushTagXinGe173APPApi;
+
   /**
    * 测试类暂时使用
    */
   @Override
   public int collectLogInfo(List collections) {
-    return clientLogCollectionDao.insertBatch(collections);
+    mongoTemplate.insertAll(collections);
+    return collections.size();
   }
 
   @Override
@@ -97,7 +95,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
       // this.delPkgStatus(pk.get(j));
       int code = this.getPkgStatus(pk.get(j));// 缓存一层
       if(code > 1) {
-        gameInfo(opType, token, result, code + "",pk.get(j));
+        gameInfo(opType, token, result, code + "", pk.get(j));
       }
       else if(code == 0) {
         sb.append(pk.get(j)).append(",");
@@ -125,7 +123,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
             JSONObject o = (JSONObject) arr.get(i);
             String code = o.getString("game_code");
             // set info
-            ClientLogCollection c = gameInfo(opType, token, result, code,sb.toString());
+            ClientLogCollection c = gameInfo(opType, token, result, code, sb.toString());
             if(StringUtils.isEmpty(c.getServiceId())) {
               c.setServiceId(o.getString("info_package"));
             }
@@ -150,12 +148,12 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
   }
 
   private ClientLogCollection gameInfo(COLLECTION_OPERATOR_TYPE opType, String token, List<ClientLogCollection> result,
-      String code,String pkg) {
+      String code, String pkg) {
     ClientLogCollection c = new ClientLogCollection();
     try {
       c.setGameCode(code);
       // 类型
-      Map<String, String> typeSt = pushTagService.getGameCodeTypeAndStatus(c.getGameCode(), GAME_PLATFORM_TYPE.MOBILE);
+      Map<String, String> typeSt = pushTagXinGe173APPApi.getGameCodeTypeAndStatus(c.getGameCode(), GAME_PLATFORM_TYPE.MOBILE);
       c.setGameCode(typeSt.get("gameCode"));
       if(typeSt != null) {
         c.setGameType(typeSt.get("type"));
@@ -189,8 +187,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
 
   @Override
   public List<StatisticJobLastUpdateTime> getStatisticJobLastUpdateTime() {
-
-    return clientLogCollectionDao.getStatisticJobLastUpdateTime();
+    return mongoTemplate.find(new Query(), StatisticJobLastUpdateTime.class);
   }
 
   @Override
@@ -198,18 +195,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     Query q = new Query();
     q.with(new Sort(Direction.DESC, "lastUpdate"));
     q.limit(100);
-    return clientLogCollectionDao.findByCondition(PushTagExcuteStateInfo.class, q);
-  }
-
-  @Override
-  public void statisticsPv() {
-    clientLogCollectionDao.statisticsPv();
-  }
-
-  @Override
-  public int collectLogInfoS(List<LinkedHashMap<String, String>> collections) {
-    int i = clientLogCollectionDao.insertBatchS(collections);
-    return 0;
+    return mongoTemplate.find(q, PushTagExcuteStateInfo.class);
   }
 
   @Override
@@ -223,7 +209,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     curPage = (curPage - 1) * pageSize;
     params.remove("curPage");
     params.put("curPage", curPage);
-    List<ClientLogCollection> list = clientLogCollectionDao.getClientCollection(null, curPage, pageSize, params);
+    List<ClientLogCollection> list = getClientCollection(null, curPage, pageSize, params);
     pagination.setRowCount(9999);
     for(Iterator iterator = list.iterator(); iterator.hasNext();) {
       ClientLogCollection clientLogCollection = (ClientLogCollection) iterator.next();
@@ -240,10 +226,94 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     return pagination;
   }
 
+  private List<ClientLogCollection> getClientCollection(ClientLogCollection collections, int page, int size,
+      Map<String, Object> params) {
+    Query query = new Query();
+    query.limit(size);
+    query.skip(page);
+    query.with(new Sort(Sort.Direction.DESC, "uploadDate"));
+
+    query(params, query, "");
+
+    return mongoTemplate.find(query, ClientLogCollection.class);
+  }
+
+  private void query(Map<String, Object> params, Query query, String tag) {
+    if(params.get("dateFrom") != null) {
+      if(params.get("dateTo") == null) {
+        query.addCriteria(Criteria.where("operatorDate").lte(new Date())
+            .gte(Constants.parseDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), params.get("dateFrom").toString())));
+
+      }
+      else
+        query.addCriteria(Criteria.where("operatorDate")
+            .lte(Constants.parseDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), params.get("dateTo").toString()))
+            .gte(Constants.parseDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), params.get("dateFrom").toString())));
+    }
+    if(params.get("dFrom") != null) {
+      if(params.get("dTo") == null) {
+        query.addCriteria(Criteria.where("uploadDate").lte(new Date())
+            .gte(Constants.parseDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), params.get("dFrom").toString())));
+
+      }
+      else
+        query.addCriteria(Criteria.where("uploadDate")
+            .lte(Constants.parseDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), params.get("dTo").toString()))
+            .gte(Constants.parseDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), params.get("dFrom").toString())));
+    }
+    if(params.get("userToken") != null)
+      query.addCriteria(Criteria.where(tag + "uid").is(params.get("userToken").toString()));
+
+    if(params.get("itemType") != null && !"999".equals(params.get("itemType"))) {
+      if("id.".equals(tag)) tag = "value.";
+      query.addCriteria(Criteria.where(tag + "itemType").is(params.get("itemType").toString()));
+    }
+
+    if(params.get("operatorType") != null && !"999".equals(params.get("operatorType"))) {
+      // if ("id.".equals(tag))
+      // tag = "value.";
+      query.addCriteria(Criteria.where(tag + "operatorType").is(params.get("operatorType").toString()));
+    }
+
+    if(params.get("serviceId") != null) {
+      Pattern pattern = Pattern.compile("^.*" + params.get("serviceId").toString() + ".*$");
+      query.addCriteria(Criteria.where(tag + "serviceId").regex(pattern));
+    }
+    else if(params.get("serviceId2") != null)
+      query.addCriteria(Criteria.where(tag + "serviceId").is(params.get("serviceId2").toString()));
+
+    if(params.get("serviceName") != null) {
+      if("id.".equals(tag)) tag = "value.";
+      Pattern pattern = Pattern.compile("^.*" + params.get("serviceName").toString() + ".*$");
+      query.addCriteria(Criteria.where(tag + "serviceName").regex(pattern));
+    }
+    else if(params.get("serviceName2") != null) {
+      if("id.".equals(tag)) tag = "value.";
+      query.addCriteria(Criteria.where(tag + "serviceName").is(params.get("serviceName2").toString()));
+
+    }
+    if(params.get("gameCode") != null) {
+      query.addCriteria(Criteria.where("value.gameCode").is(params.get("gameCode").toString()));
+    }
+
+    if(params.get("keyWord") != null) {
+      Pattern pattern = Pattern.compile("^.*" + params.get("keyWord").toString() + ".*$");
+      if(Consts.COLLECTION_KEYWORD_PV_NAME.equals(params.get("cname"))) tag = "id.";
+      query.addCriteria(Criteria.where(tag + "keyWord").regex(pattern));
+    }
+
+    if(params.get("otherWay") != null && !"999".equals(params.get("otherWay"))) {
+      query.addCriteria(Criteria.where("otherWay").is(Integer.parseInt(params.get("otherWay").toString())));
+    }
+
+  }
+
   @Override
   public int getTotalNum(String collectionName) throws Exception {
     Map<String, Object> params = new HashMap<String, Object>();
-    return (int) clientLogCollectionDao.getPVCountByName(collectionName, params, "");
+    Query query = new Query();
+    query(params, query, "");
+    return (int) mongoTemplate.count(query, collectionName);
   }
 
   /**
@@ -286,7 +356,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     params.remove("curPage");
     params.put("curPage", curPage);
     String collectionName = params.get("collectionName").toString();
-    List<UserItemOperatePvMongo2> list = clientLogCollectionDao.getPVByName(collectionName, curPage, pageSize, params);
+    List<UserItemOperatePvMongo2> list = getPVByName(collectionName, curPage, pageSize, params);
     for(Iterator iterator = list.iterator(); iterator.hasNext();) {
       UserItemOperatePvMongo2 userItemOperatePvMongo2 = (UserItemOperatePvMongo2) iterator.next();
       ClientLogCollection clientLogCollection = userItemOperatePvMongo2.getValue();
@@ -300,6 +370,18 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     pagination.setRowCount(9999);
     pagination.setContent(list);
     return pagination;
+  }
+
+  private List getPVByName(String collectionName, int page, int size, Map<String, Object> params) {
+    Query query = new Query();
+    query.limit(size);
+    query.skip(page);
+    query.with(new Sort(Sort.Direction.DESC, "value.pv"));
+
+    query(params, query, "id.");
+    if(params.get("tagType") != null && "1".equals(params.get("tagType")))
+      query.addCriteria(new Criteria().where("_id.operatorType").ne("0"));
+    return mongoTemplate.find(query, UserItemOperatePvMongo2.class, collectionName);
   }
 
   private void setGameType(ClientLogCollection clientLogCollection) throws Exception, JSONException {
@@ -323,20 +405,6 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
   }
 
   @Override
-  public List<UserItemOperatePvMongo> getUserIdByTag(Map<String, Object> params) throws Exception {
-    int curPage = Integer.parseInt(params.get("curPage").toString());
-    int pageSize = Pagination.PAGESIZE;
-    if(params.get("pageSize") != null) pageSize = Integer.parseInt(params.get("pageSize").toString());
-    String collectionName = params.get("collectionName").toString();
-    curPage = (curPage - 1) * pageSize;
-    params.remove("curPage");
-    params.put("curPage", curPage);
-    List<UserItemOperatePvMongo> list = clientLogCollectionDao.getPVByName(collectionName, curPage, pageSize, params);
-
-    return list;
-  }
-
-  @Override
   public Pagination getTagNameAndPV(Map<String, Object> params) throws Exception {
     Pagination pagination = null;
     pagination = new Pagination();
@@ -351,7 +419,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     params.put("curPage", curPage);
     if(Consts.COLLECTION_KEYWORD_PV_NAME.equals(collectionName)) params.put("keyWord", params.remove("serviceName"));
     List<PushTagCollection> pushs = new ArrayList<PushTagCollection>();
-    List<UserItemOperatePvMongo2> list = clientLogCollectionDao.getPVByName(collectionName, curPage, pageSize, params);
+    List<UserItemOperatePvMongo2> list = getPVByName(collectionName, curPage, pageSize, params);
 
     for(Iterator iterator = list.iterator(); iterator.hasNext();) {
       UserItemOperatePvMongo2 userItemOperatePvMongo2 = (UserItemOperatePvMongo2) iterator.next();
@@ -366,8 +434,10 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
         p.setTagId(userItemOperatePvMongo2.getId().getKeyWord());
       }
       else {
-        p.setTagId(pushTagService.makeUserTagId(userItemOperatePvMongo2.getId(), userItemOperatePvMongo2.getValue()));
-        p.setTagName(pushTagService.makeUserTagName(userItemOperatePvMongo2.getId(), userItemOperatePvMongo2.getValue()));
+        // p.setTagId(pushTagService.makeUserTagId(userItemOperatePvMongo2.getId(),
+        // userItemOperatePvMongo2.getValue()));
+        // p.setTagName(pushTagService.makeUserTagName(userItemOperatePvMongo2.getId(),
+        // userItemOperatePvMongo2.getValue()));
       }
 
       pushs.add(p);
@@ -379,86 +449,38 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
   }
 
   @Override
-  public void getTagName(ClientLogCollection clientLogCollection) throws Exception {
-//    StringBuffer serviceName = new StringBuffer();
-//    String[] serviceId = clientLogCollection.getServiceId().split(",");
-//    String sid = serviceId[serviceId.length - 1].trim();
-//
-//    try {
-//      if(Consts.COLLECTION_MY_SUBSCRIBE.equals(sid))
-//        serviceName.append("我的订阅");
-//      else
-//        switch(clientLogCollection.getItemTypeE()) {
-//          case VIDEO :
-//            Video video = videoService.getVideo(Integer.parseInt(sid));
-//            if(video != null)
-//              serviceName.append(video.getTitle());
-//            else
-//              serviceName.append("未查询到");
-//            break;
-//
-//          case COLUMN :
-//            Column column = columnService.getColumn(Integer.parseInt(sid));
-//            if(column != null)
-//              serviceName.append(column.getName());
-//            else
-//              serviceName.append("未查询到");
-//            break;
-//          case NEWS :
-//
-//            News news = newsInfoService.getNews(Integer.parseInt(sid));
-//            if(news != null)
-//              serviceName.append(news.getTitle());
-//            else
-//              serviceName.append("未查询到");
-//            break;
-//
-//          case JIONG :
-//            this.setJionTuName(sid, "SECTION", serviceName);
-//            break;
-//          case PIC :
-//            this.setJionTuName(sid, "PHOTOS", serviceName);
-//            break;
-//          default :
-//            serviceName.append("未查询到");
-//            break;
-//        }
-//
-//    }
-//    catch(Exception e) {
-//      LOGGER.info("getClientLogCollection : Error getting serviceName,exception msg: " + e.getMessage());
-//      serviceName.append("未查询到");
-//    }
-//
-//    clientLogCollection.setServiceName(serviceName.toString());
-  }
-
-  @Override
   public List<StatisticJobLastUpdateTime> getPVLastUpdateTime(Map<String, Object> params) throws Exception {
-    return clientLogCollectionDao.getPVLastUpdate(Consts.COLLECTION_USER_ITEM_OPERATE_PV_NAME, params);
+    return mongoTemplate.find(new Query(), StatisticJobLastUpdateTime.class);
   }
 
   @Override
   public Long getCount(String name) {
-
-    return clientLogCollectionDao.getCount(name);
+    return mongoTemplate.count(new Query(), name);
   }
 
   @Override
   public Long getCount(Query query, String name) {
-
-    return clientLogCollectionDao.getCountByQuery(query, name);
+    return mongoTemplate.count(new Query(), name);
   }
 
   @Override
   public int updatePushTagLastUpdateTime(PushTagLastUpdateTime tagLastUpdateTime) {
-    return clientLogCollectionDao.updatePushTagLastUpdateTime(tagLastUpdateTime);
-
+    try {
+      mongoTemplate.remove(new Query(Criteria.where("name").is(tagLastUpdateTime.getName())),
+          PushTagLastUpdateTime.class);
+      mongoTemplate.insert(tagLastUpdateTime);
+      return 1;
+    }
+    catch(Exception e) {
+      return 0;
+    }
   }
 
   @Override
   public PushTagLastUpdateTime getPushTagLastUpdateTime(String collectionName) {
-    return clientLogCollectionDao.getPushTagLastUpdateTime(collectionName);
+    PushTagLastUpdateTime lastUpdateTimeBean = mongoTemplate.findOne(new Query(Criteria.where("name")
+        .is(collectionName)), PushTagLastUpdateTime.class);
+    return lastUpdateTimeBean;
   }
 
   public void setPkgStatus(String pkg, String flag) {
@@ -516,7 +538,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
       LOGGER.info("token is null bind baidu id failed!!!!! " + params.get("token-self"));
     }
     else {
-      UserToken userToken = null;//userTokenService.getToken(params.get("token-self"));
+      UserToken userToken = null;// userTokenService.getToken(params.get("token-self"));
       if(userToken == null) {
         LOGGER.error(" userToken is null !!!!! ");
       }
@@ -536,8 +558,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
         Query query = new Query();
         query.addCriteria(new Criteria("tokenId").is(bindXinge.getTokenId()));
         List<UserTokenBindXinge> xinge = mongoTemplate.find(query, UserTokenBindXinge.class);
-        if(xinge.size() <= 0) 
-          mongoTemplate.insert(bindXinge);
+        if(xinge.size() <= 0) mongoTemplate.insert(bindXinge);
       }
     }
   }

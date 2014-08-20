@@ -2,9 +2,6 @@ package com.cyou.video.mobile.server.cms.service.push;
 
 import java.util.List;
 
-import com.baidu.yun.channel.exception.ChannelClientException;
-import com.baidu.yun.channel.exception.ChannelServerException;
-import com.baidu.yun.channel.model.TagInfo;
 import com.cyou.video.mobile.server.cms.model.push.Push;
 import com.tencent.xinge.TagTokenPair;
 
@@ -19,7 +16,7 @@ public interface PushInterface {
 
   public void deleteUserTag(String uid) throws Exception;
 
-  public List<TagInfo> queryUserTag(String uid) throws ChannelClientException, ChannelServerException;
+//  public List<TagInfo> queryUserTag(String uid) throws ChannelClientException, ChannelServerException;
 
   public Push pushOne(Push push);
 

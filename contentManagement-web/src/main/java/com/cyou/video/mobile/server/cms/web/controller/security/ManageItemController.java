@@ -41,19 +41,6 @@ public class ManageItemController {
   public ModelMap listManageItem(ModelMap model) {
     try {
       List<ManageItem> itemList = manageItemService.listManageItem();
-//      List<Map<String,Object>> tree=new ArrayList<Map<String,Object>>();
-//      List<Map<String,Object>> subtree=new ArrayList<Map<String,Object>>();
-//      Map<String,Object> obj=new HashMap<String, Object>();
-//      obj.put("name", "1");
-//      obj.put("id", "1");
-//      obj.put("expanded", true);
-//      Map<String,Object> subobj=new HashMap<String, Object>();
-//      subobj.put("name", "2");
-//      subobj.put("id", "2");
-//      subobj.put("leaf", true);
-//      subtree.add(subobj);
-//      obj.put("operations", subtree);
-//      tree.add(obj);
       model.addAttribute("children", itemList);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
@@ -92,7 +79,7 @@ public class ManageItemController {
 //      manageItem.setId(manageItemId);
       logger.info("[method: updateManageItem()] Update manage item by params : "
           + JacksonUtil.getJsonMapper().writeValueAsString(manageItem));
-      manageItemService.updateManageItem(manageItem);
+//      manageItemService.updateManageItem(manageItem);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -109,7 +96,7 @@ public class ManageItemController {
   int manageItemId, ModelMap model) {
     try {
       logger.info("[method: deleteManageItem()] Delete manage item by params : {manageItemId=" + manageItemId + "}");
-      manageItemService.deleteManageItem(manageItemId);
+//      manageItemService.deleteManageItem(manageItemId);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -128,7 +115,7 @@ public class ManageItemController {
     try {
       logger.info("[method: updateStatus()] Update manage item status by params : {manageItemId=" + manageItemId
           + ",status=" + status + "}");
-      manageItemService.updateStatus(manageItemId, status);
+//      manageItemService.updateStatus(manageItemId, status);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -146,7 +133,7 @@ public class ManageItemController {
     try {
       logger.info("[method: updateOrder()] Update manage Item order by params : "
           + JacksonUtil.getJsonMapper().writeValueAsString(map));
-      manageItemService.updateOrder(map);
+//      manageItemService.updateOrder(map);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

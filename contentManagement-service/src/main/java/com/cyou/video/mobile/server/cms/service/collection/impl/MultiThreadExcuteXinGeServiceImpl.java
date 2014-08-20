@@ -71,8 +71,6 @@ public class MultiThreadExcuteXinGeServiceImpl implements MultiThreadExcuteXinGe
 
   /**
    * ---------------------------------interface--------------------------------
-   * ------
-   * 
    **/
 
   /**
@@ -336,7 +334,6 @@ public class MultiThreadExcuteXinGeServiceImpl implements MultiThreadExcuteXinGe
       pThread.setEnd(end);
       taskExecutor.execute(pThread);
     }
-    // taskExecutor.shutdown();
   }
 
   private PThread getThreadService(COLLECTION_PUSH_TAG_JOB_NAME type, Map<String, Object> params) {

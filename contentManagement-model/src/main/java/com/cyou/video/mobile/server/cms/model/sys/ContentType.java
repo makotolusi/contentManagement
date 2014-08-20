@@ -6,6 +6,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.cyou.video.mobile.server.common.IEnumDisplay;
+
 @Document(collection = "Config_ContentType")
 public class ContentType {
 
@@ -18,15 +20,19 @@ public class ContentType {
 
   private String index;
 
+  private String tag;
+
   @DBRef
-  private List<ContentType> subContentType;
+  private List<ContentTypeActionAndTag> action;
 
   private String items;// 前端展现代码
 
   private String resourceUri;
 
   private String code;
-  
+
+  private CONTENT_TYPE_CATE cate;
+
   public String getDesc() {
     return desc;
   }
@@ -75,12 +81,12 @@ public class ContentType {
     this.name = name;
   }
 
-  public List<ContentType> getSubContentType() {
-    return subContentType;
+  public List<ContentTypeActionAndTag> getAction() {
+    return action;
   }
 
-  public void setSubContentType(List<ContentType> subContentType) {
-    this.subContentType = subContentType;
+  public void setAction(List<ContentTypeActionAndTag> action) {
+    this.action = action;
   }
 
   public String getCode() {
@@ -89,6 +95,47 @@ public class ContentType {
 
   public void setCode(String code) {
     this.code = code;
+  }
+
+  public String getTag() {
+    return tag;
+  }
+
+  public CONTENT_TYPE_CATE getCate() {
+    return cate;
+  }
+
+  public void setCate(CONTENT_TYPE_CATE cate) {
+    this.cate = cate;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
+  }
+
+  public enum CONTENT_TYPE_CATE implements IEnumDisplay {
+    SERVICE("业务", 0), ACTION("行为", 1);
+    public String name;
+
+    public int index;
+
+    private CONTENT_TYPE_CATE(String name, int index) {
+      this.name = name;
+      this.index = index;
+    }
+
+    public String getName() {
+      return this.name;
+    }
+
+    public int getIndex() {
+      return this.index;
+    }
+
+    @Override
+    public String toString() {
+      return this.name;
+    }
   }
 
 }

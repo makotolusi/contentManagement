@@ -18,7 +18,7 @@
 		
 		<module>contentManagement-rest</module>
 		
-		<module>contentManagement-dao-mongo</module>
+		
 		
 		
 		
