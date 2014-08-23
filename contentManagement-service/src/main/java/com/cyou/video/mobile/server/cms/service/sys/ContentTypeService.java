@@ -1,5 +1,6 @@
 package com.cyou.video.mobile.server.cms.service.sys;
 
+import java.util.List;
 import java.util.Map;
 
 import com.cyou.video.mobile.server.cms.model.Pagination;
@@ -77,4 +78,11 @@ public interface ContentTypeService {
    * @throws Exception
    */
   void deleteAction(ContentTypeActionAndTag contentType) throws Exception;
+
+  /**
+   * 填充行为和标签
+   * @param ct
+   * @throws Exception
+   */
+  void fullActionAndTag(List<ContentType> ct) throws Exception;
 }

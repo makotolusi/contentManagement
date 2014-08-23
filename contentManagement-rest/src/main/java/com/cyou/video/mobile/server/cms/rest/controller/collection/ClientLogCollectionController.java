@@ -27,7 +27,7 @@ import com.cyou.video.mobile.server.cms.model.collection.ClientLogBestWalkthroug
 import com.cyou.video.mobile.server.cms.model.collection.ClientLogCollection;
 import com.cyou.video.mobile.server.cms.rest.common.PrivateUtil;
 import com.cyou.video.mobile.server.cms.service.collection.ClientLogCollectionService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
+import com.cyou.video.mobile.server.cms.service.push.impl.PushTagXinGe173APPApi;
 
 /**
  * 数据收集 and pv
@@ -44,8 +44,9 @@ public class ClientLogCollectionController {
   @Autowired
   private ClientLogCollectionService clientLogCollectionService;
 
+
   @Autowired
-  private PushTagService pushTagService;
+  PushTagXinGe173APPApi pushTagXinGe173APPApi;
 
   /**
    * 数据收集接口直接存入mongo
@@ -89,7 +90,7 @@ public class ClientLogCollectionController {
             if(collection.getGamePlatForm() != -1) {
               p = GAME_PLATFORM_TYPE.values()[collection.getGamePlatForm() - 1];
             }
-            Map<String, String> typeSt = pushTagService.getGameCodeTypeAndStatus(collection.getGameCode(), p);
+            Map<String, String> typeSt = pushTagXinGe173APPApi.getGameCodeTypeAndStatus(collection.getGameCode(), p);
             if(typeSt != null) {
               if(typeSt.containsKey("platForm")) {
                 collection.setGamePlatForm(getIntegerData(typeSt.get("platForm")));
@@ -110,7 +111,7 @@ public class ClientLogCollectionController {
             Date date = new Date(Long.parseLong(obj.get("operatorDate")));
             collection.setOperatorDate(date);
           }
-
+          collection.setUid("9451f39ac0bffa213d51f71662a9dd2443272685_gl@qmyx");
           result.add(collection);
         }
         catch(Exception e) {

@@ -22,6 +22,9 @@ public class ConfigApps {
   @DBRef
   private List<ContentType> tagTypes;
 
+  @DBRef
+  private List<ContentType> tag;// 打tag
+
   public String getId() {
     return id;
   }
@@ -60,6 +63,14 @@ public class ConfigApps {
 
   public void setTagTypes(List<ContentType> tagTypes) {
     this.tagTypes = tagTypes;
+  }
+
+  public List<ContentType> getTag() {
+    return tag;
+  }
+
+  public void setTag(List<ContentType> tag) {
+    this.tag = tag;
   }
 
 }

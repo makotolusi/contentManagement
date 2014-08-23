@@ -512,7 +512,7 @@ public class PushTagXinGe173APPApi {
       Map<String, String> p = new HashMap<String, String>();
       Map<String, String> typeStatus;
       typeStatus = new HashMap<String, String>();
-      String url = game_cate_pc + "/game/info?game_code=" + gameCode;
+      String url =systemConfigService.getByKey("game_cate_pc")  + "/game/info?game_code=" + gameCode;
       String str = HttpUtil.syncPost(url, p, null);
       if(StringUtils.isEmpty(str)) return null;
       JSONObject obj = new JSONObject(str).getJSONObject("data");
@@ -535,7 +535,7 @@ public class PushTagXinGe173APPApi {
       Map<String, String> p = new HashMap<String, String>();
       Map<String, String> typeStatus;
       typeStatus = new HashMap<String, String>();
-      String url = game_cate_mobile + "/apis/game/info?game_code=" + gameCode;
+      String url =systemConfigService.getByKey("game_cate_mobile")   + "/apis/game/info?game_code=" + gameCode;
       String str = HttpUtil.syncPost(url, p, null);
       if(StringUtils.isEmpty(str)) return null;
       JSONObject obj = new JSONObject(str).getJSONObject("data").getJSONObject(gameCode);

@@ -5,12 +5,14 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import com.google.code.ssm.Cache;
 import com.google.code.ssm.CacheFactory;
 import com.google.code.ssm.providers.CacheException;
 
+@Component("memcacheTemplate")
 public class MemcacheTemplate implements InitializingBean {
 
     private final Cache cache;

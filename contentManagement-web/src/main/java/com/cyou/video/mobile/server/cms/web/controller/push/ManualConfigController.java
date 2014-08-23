@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_ITEM_TYPE;
-import com.cyou.video.mobile.server.cms.model.collection.PushTagExcuteStateInfo;
 import com.cyou.video.mobile.server.cms.model.collection.StatisticJobLastUpdateTime;
 import com.cyou.video.mobile.server.cms.model.collection.SystemConfig;
 import com.cyou.video.mobile.server.cms.service.collection.ClientLogCollectionService;
 import com.cyou.video.mobile.server.cms.service.collection.MultiThreadExcuteXinGeService;
+import com.cyou.video.mobile.server.cms.service.common.MemcacheTemplate;
 import com.cyou.video.mobile.server.cms.service.push.AppSelectService;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
@@ -150,17 +150,18 @@ public class ManualConfigController {
   @ResponseBody
   public ModelMap sendPushTags(@RequestBody
   Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
-    if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
+//    if(params.get("psw") != null && "lusizuiqiang".equals(params.get("psw"))) {
 //      if(pushTagService.existRunningThread()) {
 //        model.put("message", "other thread is running!");
 //        return model;
 //      }
+//   Object l= memcacheTemplate.get("9451f39ac0bffa213d51f71662a9dd2443272685_gl@qmyx");
       return multiThreadExcuteXinGeService.sendPushTags(params, model);
-    }
-    else {
-      model.put("message", "请输入密码");
-      return model;
-    }
+//    }
+//    else {
+//      model.put("message", "请输入密码");
+//      return model;
+//    }
   }
 
   /**
@@ -227,7 +228,7 @@ public class ManualConfigController {
 //        model.put("message", "other thread is running!");
 //        return model;
 //      }
-      return multiThreadExcuteService.sendWalkThroughAppTags(params, model);
+      return multiThreadExcuteXinGeService.sendWalkThroughAppTags(params, model);
     }
     else {
       model.put("message", "请输入密码");

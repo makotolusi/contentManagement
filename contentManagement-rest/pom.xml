@@ -20,6 +20,11 @@
 		</resources>
 	</build>
 	<dependencies>
+	    	<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>3.2.5.RELEASE</version>
+		</dependency>
 		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib</artifactId>
@@ -36,17 +41,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>com.cyou.video.mobile</groupId>
-			<artifactId>video-mobile-cms-lucene-search</artifactId>
-			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>log4j</groupId>
-					<artifactId>log4j</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+		
 		<dependency>
 			<groupId>com.google.code.simple-spring-memcached</groupId>
 			<artifactId>xmemcached-provider</artifactId>

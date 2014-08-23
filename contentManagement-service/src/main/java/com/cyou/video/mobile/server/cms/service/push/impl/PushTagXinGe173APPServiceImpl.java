@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.cyou.video.mobile.server.cms.common.Consts;
-import com.cyou.video.mobile.server.cms.common.Consts.PUSH_TAG_SETTING_STATE;
 import com.cyou.video.mobile.server.cms.model.collection.UserItemOperatePvMongo2;
 import com.cyou.video.mobile.server.cms.model.push.PushTagCollection;
 import com.cyou.video.mobile.server.cms.model.push.PushTagCombination;
+import com.cyou.video.mobile.server.cms.model.sys.ContentType;
+import com.cyou.video.mobile.server.cms.model.sys.ContentTypeActionAndTag;
 import com.cyou.video.mobile.server.cms.model.user.UserToken;
+import com.cyou.video.mobile.server.cms.service.common.MemcacheTemplate;
 import com.cyou.video.mobile.server.cms.service.push.PushTagXinGe173APPService;
+import com.cyou.video.mobile.server.cms.service.utils.HttpRequestProvider;
+import com.cyou.video.mobile.server.cms.service.utils.SpringEl;
 
 /**
  * 意见反馈业务实现
@@ -33,21 +41,30 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
   @Autowired
   PushTagXinGe173APPApi pushTagXinGe173APPApi;
 
+  @Autowired
+  MemcacheTemplate memcacheTemplate;
+
+  @Autowired
+  HttpRequestProvider httpRequestProvider;
+
   @Override
-  public int sendPushTags(int s, int end, Query query, String name) {
+  public int sendPushTags(Map<String, Object> params) {
     String threadName = String.valueOf(Thread.currentThread().getName());
     // tag的集合
     pushTagXinGe173APPApi.newTagResult();
-    logger.info("<" + threadName + "> start is " + s + " end is " + end);
-    pushTagXinGe173APPApi.initStartAndSize(s, end);
-    List<UserItemOperatePvMongo2> userSub = pushTagXinGe173APPApi.getUserItemOperatePvMongo2(query, name);
+    pushTagXinGe173APPApi.initStartAndSize(Integer.parseInt(params.get("start").toString()),
+        Integer.parseInt(params.get("end").toString()));
+    Query query = params.get("query") == null ? null : (Query) params.get("query");
+    List<UserItemOperatePvMongo2> userSub = pushTagXinGe173APPApi.getUserItemOperatePvMongo2(query, params.get("name")
+        .toString());
     int total = 0;
     while(!userSub.isEmpty()) {
-      int result = sendPushTagCoreOther(userSub, name);
+      Map<String, ContentTypeActionAndTag> action = (Map<String, ContentTypeActionAndTag>) params.get("action");
+      int result = sendPushTagCoreOther(userSub, params.get("name").toString(), action);
       total += result;
       // multi thread
-      if(pushTagXinGe173APPApi.continueStartAndSize(end) == false) break;
-      userSub = pushTagXinGe173APPApi.getUserItemOperatePvMongo2(query, name);
+      if(pushTagXinGe173APPApi.continueStartAndSize(Integer.parseInt(params.get("end").toString())) == false) break;
+      userSub = pushTagXinGe173APPApi.getUserItemOperatePvMongo2(query, params.get("name").toString());
     }
     try {
       pushTagXinGe173APPApi.batchTags();
@@ -58,7 +75,8 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
     return total;
   }
 
-  private int sendPushTagCoreOther(List<UserItemOperatePvMongo2> userTag, String name) {
+  private int sendPushTagCoreOther(List<UserItemOperatePvMongo2> userTag, String name,
+      Map<String, ContentTypeActionAndTag> action) {
     String threadName = String.valueOf(Thread.currentThread().getName());
     int setNum = 0;
     for(Iterator iterator = userTag.iterator(); iterator.hasNext();) {
@@ -70,52 +88,92 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
           continue;
         }
         else {
-          // id.setUid("49762622979690");
           // set 百度 id
-          UserToken n = null;//userTokenService.getToken(uTag.getId().getUid());
-          if(n == null) {
-            continue;
-          }
-          String xingeToken = pushTagXinGe173APPApi.getXGToken(n);
-          if(xingeToken == null) {// 没有xinge id
-            continue;
+          UserToken token = httpRequestProvider.getToken("9451f39ac0bffa213d51f71662a9dd2443272685_gl@qmyx");
+          if(token!=null) {
+            String xingeToken = pushTagXinGe173APPApi.getXGToken(token);
+            if(xingeToken == null) {// 没有xinge id
+              continue;
+            }
+            else {
+              uTag.getId().setPushToken(xingeToken);
+              uTag.getValue().setPushToken(xingeToken);
+            }
+            pushTagXinGe173APPApi.initClientType(token);
+            // 成功数
+            List<Boolean> suc = new ArrayList<Boolean>();
+            // client type
+            if(Consts.COLLECTION_USER_GAME_PV.equals(name)) {
+              suc.add(pushTagXinGe173APPApi.hits(uTag.getId(), uTag.getValue()));
+            }
+            else {
+              String key = uTag.getValue().getItemType() + "_";
+              if(!StringUtils.isEmpty(uTag.getId().getOtherWay()) && uTag.getId().getOtherWay() != -1) {
+                key += uTag.getId().getOtherWay() + "_";
+              }
+              key += uTag.getId().getOperatorType() + "_";
+              ContentTypeActionAndTag actionAndTag = action.get(key);
+              if(actionAndTag != null) {
+                List<ContentType> tag = actionAndTag.getTags();
+                for(Iterator iterator2 = tag.iterator(); iterator2.hasNext();) {
+                  String realTag = "";
+                  ContentType contentType = (ContentType) iterator2.next();
+                  if(contentType.getTag().indexOf("_") > 0) {
+                    String[] tagCombination = contentType.getTag().split("_");
+                    String v = (String) SpringEl.getFieldValue(tagCombination[0], uTag.getValue());
+                    realTag += v + "_";
+                    String index = (String) SpringEl.getFieldValue(tagCombination[1], contentType);
+                    realTag += index;
+                    if(StringUtils.isEmpty(v) || StringUtils.isEmpty(index)) {
+                      continue;
+                    }
+                    pushTagXinGe173APPApi.setTag(xingeToken, realTag);
+                  }
+                  else {// single
+                    String v = (String) SpringEl.getFieldValue(contentType.getTag(), uTag.getValue());
+                    if(v.indexOf(",") >= 0) {
+                      String[] s = v.split(",");
+                      for(int i = 0; i < s.length; i++) {
+                        pushTagXinGe173APPApi.setTag(xingeToken, s[i]);// game
+                      }
+                    }
+                    else {
+                      pushTagXinGe173APPApi.setTag(xingeToken, v);
+                    }
+                  }
+
+                }
+              }
+              suc.add(pushTagXinGe173APPApi.jiong(uTag.getId(), uTag.getValue()));
+
+              pushTagXinGe173APPApi.news(uTag.getId(), uTag.getValue());
+
+              suc.add(pushTagXinGe173APPApi.live(uTag.getId(), uTag.getValue()));
+
+              suc.add(pushTagXinGe173APPApi.video(uTag.getId(), uTag.getValue()));
+
+              suc.add(pushTagXinGe173APPApi.activity(uTag.getId(), uTag.getValue()));
+              //
+              suc.add(pushTagXinGe173APPApi.bySearch(uTag.getId(), uTag.getValue()));
+
+              suc.add(pushTagXinGe173APPApi.byRank(uTag.getId(), uTag.getValue()));
+              // 订阅
+              pushTagXinGe173APPApi.subscribe(uTag.getId(), uTag.getValue());
+              // 订阅
+              pushTagXinGe173APPApi.top(uTag.getId(), uTag.getValue());
+
+              suc.add(pushTagXinGe173APPApi.desktop(uTag.getId(), uTag.getValue()));
+              // app
+              pushTagXinGe173APPApi.app(uTag.getId(), uTag.getValue());
+            }
+            // if(suc.contains(true))
+            // pushTagXinGe173APPApi.updateTagStateInMongoBatch(uTag.getId(),
+            // PUSH_TAG_SETTING_STATE.SUC.getIndex(), name);
           }
           else {
-            uTag.getId().setPushToken(xingeToken);
-            uTag.getValue().setPushToken(xingeToken);
+            continue;
           }
-          pushTagXinGe173APPApi.initClientType(n);
-          // 成功数
-          List<Boolean> suc = new ArrayList<Boolean>();
-          // client type
-          if(Consts.COLLECTION_USER_GAME_PV.equals(name)) {
-            suc.add(pushTagXinGe173APPApi.hits(uTag.getId(), uTag.getValue()));
-          }
-          else {
-            suc.add(pushTagXinGe173APPApi.jiong(uTag.getId(), uTag.getValue()));
 
-            pushTagXinGe173APPApi.news(uTag.getId(), uTag.getValue());
-
-            suc.add(pushTagXinGe173APPApi.live(uTag.getId(), uTag.getValue()));
-
-            suc.add(pushTagXinGe173APPApi.video(uTag.getId(), uTag.getValue()));
-
-            suc.add(pushTagXinGe173APPApi.activity(uTag.getId(), uTag.getValue()));
-            //
-            suc.add(pushTagXinGe173APPApi.bySearch(uTag.getId(), uTag.getValue()));
-
-            suc.add(pushTagXinGe173APPApi.byRank(uTag.getId(), uTag.getValue()));
-            // 订阅
-            pushTagXinGe173APPApi.subscribe(uTag.getId(), uTag.getValue());
-            // 订阅
-            pushTagXinGe173APPApi.top(uTag.getId(), uTag.getValue());
-
-            suc.add(pushTagXinGe173APPApi.desktop(uTag.getId(), uTag.getValue()));
-            // app
-            pushTagXinGe173APPApi.app(uTag.getId(), uTag.getValue());
-          }
-          if(suc.contains(true))
-            pushTagXinGe173APPApi.updateTagStateInMongoBatch(uTag.getId(), PUSH_TAG_SETTING_STATE.SUC.getIndex(), name);
         }
       }
       catch(Exception e) {
@@ -128,47 +186,49 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
   @Override
   public int sendPushTagsChannel(int s, int end, Date lastModifyDate) throws Exception {
     String threadName = String.valueOf(Thread.currentThread().getName());
-//    pushTagXinGe173APPApi.newTagResult();
-//    logger.info("<" + threadName + "> start is " + s + " end is " + end);
-//    pushTagXinGe173APPApi.initStartAndSize(s, end);
-//    List<UserToken> userTag = userTokenDao.getTokenBaiduUidChannelInfoForXinGe(pushTagXinGe173APPApi.getStart(),
-//        pushTagXinGe173APPApi.getSize(), lastModifyDate);
-//    logger.info("userTag list is " + userTag);
-//    int setNum = 0;
-//    while(userTag != null && !userTag.isEmpty()) {
-//      for(Iterator iterator = userTag.iterator(); iterator.hasNext();) {
-//        try {
-//          pushTagXinGe173APPApi.inc(threadName, setNum);
-//          setNum++;
-//          UserToken user = (UserToken) iterator.next();
-//          String channel = user.getChannel();
-//          String version = user.getCurUsedVersion();
-//          String xingeToken = pushTagXinGe173APPApi.getXGToken(user);
-//          if(xingeToken == null) {// 没有xinge id
-//            continue;
-//          }
-//          pushTagXinGe173APPApi.initClientType(user);
-//          if(!StringUtils.isEmpty(channel)) 
-//            pushTagXinGe173APPApi.setTag(xingeToken, channel);
-//          if(!StringUtils.isEmpty(version)) 
-//            pushTagXinGe173APPApi.setTag(xingeToken, version);
-//        }
-//        catch(Exception e) {
-//          logger.error("set tag exception is " + e.getMessage());
-//          e.printStackTrace();
-//        }
-//      }
-//      // multi thread
-//      if(pushTagXinGe173APPApi.continueStartAndSize(end) == false) break;
-//      userTag = userTokenService.getTokenBaiduUidChannelInfo(pushTagXinGe173APPApi.getStart(),
-//          pushTagXinGe173APPApi.getSize(), lastModifyDate);
-//    }
-//    try {
-//      pushTagXinGe173APPApi.batchTags();
-//    }
-//    catch(Exception e) {
-//      logger.error("信鸽批量tag时候出错 " + e.getMessage());
-//    }// 批量执行tag
+    // pushTagXinGe173APPApi.newTagResult();
+    // logger.info("<" + threadName + "> start is " + s + " end is " + end);
+    // pushTagXinGe173APPApi.initStartAndSize(s, end);
+    // List<UserToken> userTag =
+    // userTokenDao.getTokenBaiduUidChannelInfoForXinGe(pushTagXinGe173APPApi.getStart(),
+    // pushTagXinGe173APPApi.getSize(), lastModifyDate);
+    // logger.info("userTag list is " + userTag);
+    // int setNum = 0;
+    // while(userTag != null && !userTag.isEmpty()) {
+    // for(Iterator iterator = userTag.iterator(); iterator.hasNext();) {
+    // try {
+    // pushTagXinGe173APPApi.inc(threadName, setNum);
+    // setNum++;
+    // UserToken user = (UserToken) iterator.next();
+    // String channel = user.getChannel();
+    // String version = user.getCurUsedVersion();
+    // String xingeToken = pushTagXinGe173APPApi.getXGToken(user);
+    // if(xingeToken == null) {// 没有xinge id
+    // continue;
+    // }
+    // pushTagXinGe173APPApi.initClientType(user);
+    // if(!StringUtils.isEmpty(channel))
+    // pushTagXinGe173APPApi.setTag(xingeToken, channel);
+    // if(!StringUtils.isEmpty(version))
+    // pushTagXinGe173APPApi.setTag(xingeToken, version);
+    // }
+    // catch(Exception e) {
+    // logger.error("set tag exception is " + e.getMessage());
+    // e.printStackTrace();
+    // }
+    // }
+    // // multi thread
+    // if(pushTagXinGe173APPApi.continueStartAndSize(end) == false) break;
+    // userTag =
+    // userTokenService.getTokenBaiduUidChannelInfo(pushTagXinGe173APPApi.getStart(),
+    // pushTagXinGe173APPApi.getSize(), lastModifyDate);
+    // }
+    // try {
+    // pushTagXinGe173APPApi.batchTags();
+    // }
+    // catch(Exception e) {
+    // logger.error("信鸽批量tag时候出错 " + e.getMessage());
+    // }// 批量执行tag
     return 0;
   }
 
@@ -192,7 +252,6 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
     }
     return totalSetNum;
   }
-  
 
   private int sendPushCombinationTagCore(List<UserItemOperatePvMongo2> userTag, String name,
       PushTagCombination combination) {
@@ -208,7 +267,7 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
           continue;
         else {
           // token
-          UserToken n = null;//userTokenService.getToken(uTag.getId().getUid());
+          UserToken n = null;// userTokenService.getToken(uTag.getId().getUid());
           if(n == null) {
             continue;
           }
@@ -271,7 +330,7 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
     }
     return setNum;
   }
-  
+
   @Override
   public void successLogEnd(String c, int total) {
     pushTagXinGe173APPApi.successLogEnd(c, total);

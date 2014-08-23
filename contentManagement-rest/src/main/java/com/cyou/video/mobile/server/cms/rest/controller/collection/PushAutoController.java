@@ -18,10 +18,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_ITEM_TYPE;
 import com.cyou.video.mobile.server.cms.model.Pagination;
-import com.cyou.video.mobile.server.cms.rest.common.PrivateUtil;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
-import com.cyou.video.mobile.server.cms.service.push.PushTagService;
+import com.cyou.video.mobile.server.cms.service.push.impl.PushTagXinGe173APPApi;
 import com.cyou.video.mobile.server.common.Constants;
 
 /**
@@ -40,7 +39,7 @@ public class PushAutoController {
   AutoPushService autoPushServiceImpl;
 
   @Autowired
-  PushTagService pushTagService;
+  PushTagXinGe173APPApi pushTagXinGe173APPApi;
 
   @Autowired
   PushService pushService;

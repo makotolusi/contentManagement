@@ -1,6 +1,7 @@
 package com.cyou.video.mobile.server.cms.service.push;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.data.mongodb.core.query.Query;
 
@@ -11,7 +12,7 @@ public interface PushTagXinGe173APPService {
   /**
    * 173app发送标签
    */
-  int sendPushTags(int s, int end, Query query, String name);
+  int sendPushTags(Map<String, Object> params);
 
   /**
    * 每个线程结束时记录日志

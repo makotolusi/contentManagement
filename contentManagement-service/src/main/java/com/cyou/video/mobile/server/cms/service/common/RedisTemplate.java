@@ -1,6 +1,7 @@
 package com.cyou.video.mobile.server.cms.service.common;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import redis.clients.jedis.Jedis;

@@ -14,10 +14,8 @@ public class ContentTypeActionAndTag {
 
   private String name;
 
-  @DBRef
   private List<ContentType> action;
 
-  @DBRef
   private List<ContentType> tags;
 
   public List<ContentType> getAction() {

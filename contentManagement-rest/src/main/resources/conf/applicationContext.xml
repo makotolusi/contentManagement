@@ -14,7 +14,6 @@
 
 	<context:property-placeholder location="classpath:/config.properties" />
 
-	<import resource="classpath:/dataSource.xml" />
 	<import resource="classpath:/mongoDataSource.xml" />
 
 	<context:component-scan base-package="com.cyou" />
@@ -23,6 +22,7 @@
 
 	<mvc:default-servlet-handler />
 
+<!--  
 	<mvc:interceptors>
 		<mvc:interceptor>
 			<mvc:mapping path="/rest/sp/**" />
@@ -35,7 +35,7 @@
 				class="com.cyou.video.mobile.server.cms.rest.intercept.AuthInterceptor"></bean>
 		</mvc:interceptor>
 	</mvc:interceptors>
-
+-->
 	<!-- annotation默认的方法映射适配器 -->
 	<bean id="defaultAnnotationHandlerMapping"
 		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
@@ -49,5 +49,6 @@
 		<property name="maxPoolSize" value="20" />
 		<property name="waitForTasksToCompleteOnShutdown" value="true" />
 	</bean>
+
 	
 </beans>
