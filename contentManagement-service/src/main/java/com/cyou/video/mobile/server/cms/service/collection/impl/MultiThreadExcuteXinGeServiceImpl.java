@@ -131,13 +131,12 @@ public class MultiThreadExcuteXinGeServiceImpl implements MultiThreadExcuteXinGe
       Map<String, ContentTypeActionAndTag> action=new HashMap<String, ContentTypeActionAndTag>();
       List in = new ArrayList();
       for(Iterator iterator = tag.iterator(); iterator.hasNext();) {
-        String key="";
         ContentType ct = (ContentType) iterator.next();
         String service=ct.getIndex();
-        key+=service+"_";
         in.add(ct.getIndex());
         List<ContentTypeActionAndTag> actionAndTag=ct.getAction();
         for(Iterator iterator2 = actionAndTag.iterator(); iterator2.hasNext();) {
+          String key=service+"_";
           ContentTypeActionAndTag contentTypeActionAndTag = (ContentTypeActionAndTag) iterator2.next();
           List<ContentType> act=contentTypeActionAndTag.getAction();
           contentTypeService.fullActionAndTag(act);

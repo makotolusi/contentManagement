@@ -11,9 +11,9 @@ public class SpringEl {
     Expression exp = parser.parseExpression(field);
     return exp.getValue(obj);
   }
-  public static Object condition(String field,String value, Object obj) {
+  public static Object condition(String condition, Object obj) {
     ExpressionParser parser = new SpelExpressionParser();
-    Expression exp = parser.parseExpression(field+ " == "+value+"");
+    Expression exp = parser.parseExpression(condition);
     return exp.getValue(obj);
   }
 }

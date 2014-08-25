@@ -21,7 +21,7 @@ public class ContentType {
   private String index;
 
   private String tag;
-
+  
   @DBRef
   private List<ContentTypeActionAndTag> action;
 
@@ -112,7 +112,7 @@ public class ContentType {
   public void setTag(String tag) {
     this.tag = tag;
   }
-
+  
   public enum CONTENT_TYPE_CATE implements IEnumDisplay {
     SERVICE("业务", 0), ACTION("行为", 1);
     public String name;

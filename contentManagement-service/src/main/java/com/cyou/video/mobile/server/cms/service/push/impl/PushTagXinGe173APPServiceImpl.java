@@ -22,6 +22,7 @@ import com.cyou.video.mobile.server.cms.model.push.PushTagCollection;
 import com.cyou.video.mobile.server.cms.model.push.PushTagCombination;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.cms.model.sys.ContentTypeActionAndTag;
+import com.cyou.video.mobile.server.cms.model.sys.ContentTypeActionAndTag.TAG_OPERATION;
 import com.cyou.video.mobile.server.cms.model.user.UserToken;
 import com.cyou.video.mobile.server.cms.service.common.MemcacheTemplate;
 import com.cyou.video.mobile.server.cms.service.push.PushTagXinGe173APPService;
@@ -90,7 +91,7 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
         else {
           // set 百度 id
           UserToken token = httpRequestProvider.getToken("9451f39ac0bffa213d51f71662a9dd2443272685_gl@qmyx");
-          if(token!=null) {
+          if(token != null) {
             String xingeToken = pushTagXinGe173APPApi.getXGToken(token);
             if(xingeToken == null) {// 没有xinge id
               continue;
@@ -112,7 +113,14 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
                 key += uTag.getId().getOtherWay() + "_";
               }
               key += uTag.getId().getOperatorType() + "_";
+              pushTagXinGe173APPApi.activity(uTag.getId(), uTag.getValue());// 独特的活动标签方式
               ContentTypeActionAndTag actionAndTag = action.get(key);
+              if(!StringUtils.isEmpty(actionAndTag.getCondition())) {
+                Boolean f = (Boolean) SpringEl.condition(actionAndTag.getCondition(), uTag.getValue());
+                if(!f) {
+                  continue;// 表达式未通过
+                }
+              }
               if(actionAndTag != null) {
                 List<ContentType> tag = actionAndTag.getTags();
                 for(Iterator iterator2 = tag.iterator(); iterator2.hasNext();) {
@@ -127,18 +135,18 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
                     if(StringUtils.isEmpty(v) || StringUtils.isEmpty(index)) {
                       continue;
                     }
-                    pushTagXinGe173APPApi.setTag(xingeToken, realTag);
+                    tag(xingeToken, actionAndTag, realTag);
                   }
                   else {// single
                     String v = (String) SpringEl.getFieldValue(contentType.getTag(), uTag.getValue());
                     if(v.indexOf(",") >= 0) {
                       String[] s = v.split(",");
-                      for(int i = 0; i < s.length; i++) {
-                        pushTagXinGe173APPApi.setTag(xingeToken, s[i]);// game
+                      for(int i = 0; i < s.length; i++) {// game
+                        tag(xingeToken, actionAndTag, s[i]);
                       }
                     }
                     else {
-                      pushTagXinGe173APPApi.setTag(xingeToken, v);
+                      tag(xingeToken, actionAndTag, v);
                     }
                   }
 
@@ -181,6 +189,15 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
       }
     }
     return setNum;
+  }
+
+  private void tag(String xingeToken, ContentTypeActionAndTag actionAndTag, String tag) {
+    if(actionAndTag.getOperation() == TAG_OPERATION.SET_TAG) {
+      pushTagXinGe173APPApi.setTag(xingeToken, tag);
+    }
+    else {
+      pushTagXinGe173APPApi.deleteTag(xingeToken, tag);
+    }
   }
 
   @Override

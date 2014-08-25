@@ -130,7 +130,6 @@ public class PushTagXinGe173APPApi {
   public boolean activity(ClientLogCollection id, ClientLogCollection value) throws Exception {
     if(value.getItemTypeE() == COLLECTION_ITEM_TYPE.ACT_CENTER) {
       if(id.getOperatorTypeE() == COLLECTION_OPERATOR_TYPE.VIEW) {
-        if(!StringUtils.isEmpty(value.getServiceName())) setTag(id.getPushToken(), value.getServiceName());
         setTag(id.getPushToken(), "ACT_CENTER");
         return true;
       }
@@ -153,7 +152,6 @@ public class PushTagXinGe173APPApi {
         if(id.getOperatorTypeE() == COLLECTION_OPERATOR_TYPE.VIEW) {
           return setGiftTag(value, id.getPushToken());
         }
-
       }
     }
     return false;

@@ -44,7 +44,7 @@ public interface RoleService {
    * @param id 角色id
    * @throws Exception
    */
-  public void deleteRole(int id) throws Exception;
+  public void deleteRole(Role role) throws Exception;
 
   /**
    * 更新角色操作项关联
