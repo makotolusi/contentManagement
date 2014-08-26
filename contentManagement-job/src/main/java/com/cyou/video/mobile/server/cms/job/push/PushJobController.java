@@ -122,7 +122,9 @@ public class PushJobController {
 
   @RequestMapping(value = "/updateTrigger", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap updateTrigger(HttpServletRequest request, ModelMap model) {
+  public ModelMap updateTrigger(@RequestParam("pushId")
+  String pushId, @RequestParam("expression")
+  String expression,HttpServletRequest request, ModelMap model) {
     if(request.getParameter("pushId") == null || request.getParameter("expression") == null) {
       logger.warn("push triggerName  and expression is null ");
       model.put("success", "false");
@@ -131,7 +133,7 @@ public class PushJobController {
       try {
         pushScheduler.initScheduler();
         System.out.println(request.getParameter("pushId") + "-----------" + request.getParameter("expression"));
-        pushScheduler.updateTriger(request.getParameter("pushId"), request.getParameter("expression"));
+        model.putAll(pushScheduler.updateTriger(request.getParameter("pushId"), request.getParameter("expression")));
         model.put("success", "true");
       }
       catch(Exception e) {

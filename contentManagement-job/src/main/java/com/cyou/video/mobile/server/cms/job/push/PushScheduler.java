@@ -63,11 +63,14 @@ public class PushScheduler {
    * 
    * @throws org.quartz.SchedulerException
    */
-  public void updateTriger(String pushId,String expression) throws Exception {
-        // retrieve the trigger
-        CronTrigger oldTrigger = (CronTrigger) scheduler.getTrigger(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId);
-        oldTrigger.setCronExpression(expression);
-        scheduler.rescheduleJob(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId, oldTrigger);
+  public Map<String, Object> updateTriger(String pushId, String expression) throws Exception {
+    JobDetail jobDetail = new JobDetail(JOB_NAME + pushId, GROUP_NAME, PushJob.class);
+    jobDetail.getJobDataMap().put("pushId", pushId);
+    // retrieve the trigger
+    CronTrigger oldTrigger = (CronTrigger) scheduler.getTrigger(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId);
+    oldTrigger.setCronExpression(expression);
+    scheduler.rescheduleJob(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId, oldTrigger);
+    return getTriggerInfo(pushId, jobDetail);
   }
 
   /**
@@ -75,10 +78,10 @@ public class PushScheduler {
    * 
    * @throws org.quartz.SchedulerException
    */
-  public int  getTrigerState(String pushId) throws Exception {
-        return scheduler.getTriggerState(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId);
+  public int getTrigerState(String pushId) throws Exception {
+    return scheduler.getTriggerState(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId);
   }
-  
+
   /**
    * 新触发器
    * 
@@ -86,26 +89,30 @@ public class PushScheduler {
    * @throws org.quartz.SchedulerException
    */
   public Map<String, Object> newPushJob(String pushId, String expression) throws Exception {
-    Map<String, Object> result = new HashMap<String, Object>();
     JobDetail jobDetail = new JobDetail(JOB_NAME + pushId, GROUP_NAME, PushJob.class);
     jobDetail.getJobDataMap().put("pushId", pushId);
     Trigger trigger = new CronTrigger(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId, expression);
     scheduler.scheduleJob(jobDetail, trigger);
+    return getTriggerInfo(pushId, jobDetail);
+  }
+
+  private Map<String, Object> getTriggerInfo(String pushId, JobDetail jobDetail) throws SchedulerException {
+    Map<String, Object> result = new HashMap<String, Object>();
     Trigger[] triggers = this.getTriggerByPushId(pushId);
     List<Map<String, String>> triggerList = new ArrayList<Map<String, String>>();
     for(int i = 0; i < triggers.length; i++) {
       Trigger t = triggers[i];
       Map<String, String> tri = new HashMap<String, String>();
       tri.put("name", t.getName());
-      if(t.getStartTime()!=null)
-      tri.put("startTime", Constants.formatDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), t.getStartTime()));
-      if(t.getNextFireTime()!=null)
-      tri.put("nextFireTime", Constants.formatDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), t.getNextFireTime()));
-      if(t.getPreviousFireTime()!=null)
-      tri.put("previousFireTime",
-          Constants.formatDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), t.getPreviousFireTime()));
+      if(t.getStartTime() != null)
+        tri.put("startTime", Constants.formatDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), t.getStartTime()));
+      if(t.getNextFireTime() != null)
+        tri.put("nextFireTime", Constants.formatDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), t.getNextFireTime()));
+      if(t.getPreviousFireTime() != null)
+        tri.put("previousFireTime",
+            Constants.formatDate(Constants.SDF.YYYYMMDDHHMMSS.toString(), t.getPreviousFireTime()));
       else
-        tri.put("previousFireTime","");
+        tri.put("previousFireTime", "");
       triggerList.add(tri);
     }
     result.put("isStateful", jobDetail.isStateful());
@@ -185,9 +192,14 @@ public class PushScheduler {
    * @param groupName
    */
   public void pauseJob(String pushId) throws SchedulerException {
-    
-      this.scheduler.pauseTrigger(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId);//.pauseJob(JOB_NAME + pushId, GROUP_NAME + pushId);
-    
+
+    this.scheduler.pauseTrigger(JOB_NAME + TRIGER + pushId + "_0", JOB_NAME + pushId);// .pauseJob(JOB_NAME
+                                                                                      // +
+                                                                                      // pushId,
+                                                                                      // GROUP_NAME
+                                                                                      // +
+                                                                                      // pushId);
+
   }
 
   /**
@@ -197,7 +209,7 @@ public class PushScheduler {
    * @param groupName
    */
   public void resumeJob(String pushId) throws SchedulerException {
-      this.scheduler.resumeJob(JOB_NAME + pushId, GROUP_NAME);
+    this.scheduler.resumeJob(JOB_NAME + pushId, GROUP_NAME);
   }
 
   /**
@@ -209,8 +221,8 @@ public class PushScheduler {
    * @throws org.quartz.SchedulerException
    */
   public boolean deleteJob(String pushId) throws SchedulerException {
-      return this.scheduler.deleteJob(JOB_NAME + pushId, GROUP_NAME);
-    
+    return this.scheduler.deleteJob(JOB_NAME + pushId, GROUP_NAME);
+
   }
 
   /**
@@ -230,7 +242,7 @@ public class PushScheduler {
   }
 
   public JobDetail getJobByPushId(String pushId) throws SchedulerException {
-      return this.scheduler.getJobDetail(JOB_NAME + pushId, GROUP_NAME);
+    return this.scheduler.getJobDetail(JOB_NAME + pushId, GROUP_NAME);
   }
 
   /**

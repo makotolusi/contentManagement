@@ -114,7 +114,6 @@ public class Push {
   /**
    * trigger start
    */
-  @Transient
   private String startTime;
 
   /**
@@ -126,13 +125,11 @@ public class Push {
   /**
    * trigger next fire time
    */
-  @Transient
   private String nextFireTime;
 
   /**
    * trigger previous time
    */
-  @Transient
   private String previousFireTime;
 
   /**

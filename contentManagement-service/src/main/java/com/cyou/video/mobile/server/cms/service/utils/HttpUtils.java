@@ -50,7 +50,6 @@ public class HttpUtils {
 
     HttpPost httpost = new HttpPost(url);
     List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-
     Set<String> keySet = params.keySet();
     for(String key : keySet) {
       nvps.add(new BasicNameValuePair(key, params.get(key)));
@@ -70,7 +69,6 @@ public class HttpUtils {
     HttpPost httpost = new HttpPost(url);
     try {
       StringEntity s = new StringEntity(json.toString(),"UTF-8");
-//      s.setContentEncoding("UTF-8");
       s.setContentType("application/json");
       httpost.setEntity(s);
     }
@@ -82,10 +80,8 @@ public class HttpUtils {
   }
 
   private static String invoke(DefaultHttpClient httpclient, HttpUriRequest httpost) {
-
     HttpResponse response = sendRequest(httpclient, httpost);
     String body = paseResponse(response);
-
     return body;
   }
 

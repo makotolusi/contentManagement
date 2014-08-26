@@ -96,13 +96,6 @@ public interface PushService {
    */
   public JSONObject deleteJob(String pushId) throws Exception;
 
-  /**
-   * update job
-   * 
-   * @param push
-   * @throws Exception
-   */
-  void modifyPush(Push push) throws Exception;
 
   /**
    * update send state
@@ -163,4 +156,13 @@ public interface PushService {
    * @param push
    */
   void updateJobStateById(Push push);
+
+  /**
+   * 
+   * @param push
+   * @return
+   */
+  String savePush(Push push);
+
+  JSONObject modifyJob(String pushId, String expression) throws Exception;
 }

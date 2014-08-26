@@ -1,8 +1,10 @@
 package com.cyou.video.mobile.server.cms.web.controller.security;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,7 @@ public class ManagerController {
   
   private Logger logger=LoggerFactory.getLogger(ManagerController.class);
 
-//  @Autowired
+  @Autowired
   private ManagerService managerService;
 
 //  @Autowired
@@ -104,13 +106,29 @@ public class ManagerController {
     return new ModelAndView("/security/listManager");
   }
 
+//  @RequestMapping(method = RequestMethod.POST)
+//  @ResponseBody
+//  public ModelMap listManager(@RequestParam("status") int status, ModelMap model, HttpServletRequest request) {
+//    try {
+//      logger.info("[method: listManager()] Get manager list by params : {status=" + status + "}");
+//      List<Manager> list = managerService.listManager(status, request);
+//      model.addAttribute("list", list);
+//      model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+//    }
+//    catch(Exception e) {
+//      logger.error("[method: listManager()] Get manager list : error! " + e.getMessage(), e);
+//      model.addAttribute("message", e.getMessage());
+//      e.printStackTrace();
+//    }
+//    return model;
+//  }
+
   @RequestMapping(method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap listManager(@RequestParam("status") int status, ModelMap model, HttpServletRequest request) {
+  public ModelMap listManager(@RequestBody
+      Map<String, Object> params, ModelMap model, HttpServletRequest request) {
     try {
-      logger.info("[method: listManager()] Get manager list by params : {status=" + status + "}");
-      List<Manager> list = managerService.listManager(status, request);
-      model.addAttribute("list", list);
+      model.addAttribute("page", managerService.listManager(params));
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -120,32 +138,34 @@ public class ManagerController {
     }
     return model;
   }
-
+  
   @LogAnno(type = Constants.LOG_TYPE_ADD, desc = "创建新管理员", modelName = "管理员管理")
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap createManager(@RequestBody Manager manager, ModelMap model) {
+  public ModelMap createManager(@RequestBody Manager manager, HttpServletResponse response,  ModelMap model) {
     try {
       logger.info("[method: createManager()] Create manager by params : " + JacksonUtil.getJsonMapper().writeValueAsString(manager));
-      int id = managerService.createManager(manager);
-      model.addAttribute("id", id);
+      managerService.createManager(manager);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+      response.setStatus(HttpServletResponse.SC_OK);
     }
     catch(Exception e) {
       logger.error("[method: createManager()] Create manager : error! " + e.getMessage(), e);
       model.addAttribute("message", e.getMessage());
+      logger.error("push  failed!!");
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       e.printStackTrace();
     }
     return model;
   }
 
   @LogAnno(type = Constants.LOG_TYPE_UPDATE, desc = "密码重置", modelName = "管理员管理")
-  @RequestMapping(value = "{id}/password/reset", method = RequestMethod.GET)
+  @RequestMapping(value = "/password/reset", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap passwordReset(@PathVariable("id") int managerId, ModelMap model) {
+  public ModelMap passwordReset(@RequestBody Manager manager, ModelMap model) {
     try {
-      logger.info("[method: passwordReset()] Reset manager password by params : {managerId=" + managerId + "}");
-      managerService.resetPassword(managerId);
+      logger.info("[method: passwordReset()] Reset manager password by params : {managerId=" + manager.getId() + "}");
+      managerService.resetPassword(manager.getId());
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -157,12 +177,12 @@ public class ManagerController {
   }
 
   @LogAnno(type = Constants.LOG_TYPE_UPDATE, desc = "更新指定管理员状态", modelName = "管理员管理")
-  @RequestMapping(value = "{id}/status", method = RequestMethod.POST)
+  @RequestMapping(value = "/status", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap updateStatus(@PathVariable("id") int managerId, @RequestParam("status") int status, ModelMap model) {
+  public ModelMap updateStatus(@RequestBody Manager manager, ModelMap model) {
     try {
-      logger.info("[method: updateStatus()] Update manager Status by params : {managerId=" + managerId + ",status=" + status + "}");
-      managerService.updateStatus(managerId, status);
+      logger.info("[method: updateStatus()] Update manager Status by params : {managerId=" + manager.getId() + ",status=" + manager.getStatus() + "}");
+      managerService.updateStatus(manager.getId(), manager.getStatus());
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

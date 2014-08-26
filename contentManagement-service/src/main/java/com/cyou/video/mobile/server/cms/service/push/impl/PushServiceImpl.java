@@ -32,6 +32,7 @@ import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
 import com.cyou.video.mobile.server.cms.service.sys.SystemConfigService;
 import com.cyou.video.mobile.server.cms.service.utils.DateUtils;
+import com.cyou.video.mobile.server.cms.service.utils.HttpUtils;
 import com.cyou.video.mobile.server.common.Constants;
 import com.cyou.video.mobile.server.common.utils.HttpUtil;
 import com.cyou.video.mobile.server.common.utils.JacksonUtil;
@@ -62,7 +63,6 @@ public class PushServiceImpl implements PushService {
         throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
             Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_push");
       }
-      // int id = pushDao.createPush(push);
       mongoTemplate.insert(push);
       return push.getId();
     }
@@ -72,6 +72,21 @@ public class PushServiceImpl implements PushService {
     }
   }
 
+  @Override
+  public String savePush(Push push) {
+    try {
+      if(push == null) {
+        throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
+            Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_push");
+      }
+      mongoTemplate.save(push);
+      return push.getId();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
   @Override
   public int updatePush(Push push) {
     try {
@@ -196,11 +211,13 @@ public class PushServiceImpl implements PushService {
    * @return
    * @throws Exception
    */
-  private String modifyJob(String pushId, String expression) throws Exception {
+  @Override
+  public JSONObject modifyJob(String pushId, String expression) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     params.put("pushId", pushId + "");
     params.put("expression", expression + "");
-    return HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/updateTrigger", params, null);
+    String str=HttpUtil.syncPost(systemConfigService.getByKey("job_url") + "/job/push/updateTrigger", params,null);
+    return new JSONObject(str);
   }
 
   /**
@@ -237,46 +254,46 @@ public class PushServiceImpl implements PushService {
     pagination.setRowCount((int) mongoTemplate.count(this.getQuery(params), Push.class));
     List<Push> pushs = mongoTemplate.find(this.getQuery(params), Push.class);
     List<Push> result = new ArrayList<Push>();
-    if(org.springframework.util.StringUtils.isEmpty(params.get("pushType"))
-        || Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.IMMEDIATE) {
-      pagination.setContent(pushs);
-    }
-    else {
-      int flag = 0;
-      for(Iterator<Push> iterator = pushs.iterator(); iterator.hasNext();) {
-        Push push = iterator.next();
-        if(Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.TIMING) {
-          try {
-            Map<String, String> map = this.postGetTriggerInfo(push.getId());
-            if(map != null) {
-              push.setTirggerName(map.get("name"));
-              push.setStartTime(map.get("startTime"));
-              push.setPreviousFireTime(map.get("previousFireTime"));
-              push.setNextFireTime(map.get("nextFireTime"));
-              if(org.springframework.util.StringUtils.isEmpty(map.get("nextFireTime"))){
-                push.setJobState(PUSH_JOB_STATE.DISABLE);
-                push.setJobState(PUSH_JOB_STATE.DISABLE);
-                this.updateJobStateById(push);
-              }
-              push.setCronExpression(map.get("cronExpression"));
-            }
-          }
-          catch(Exception e) {
-            flag = 1;
-            logger.error("get job info failed :" + e.getMessage());
-            break;
-          }
-        }
-        result.add(push);
-      }
-      if(flag == 1) {
-        pagination.setContent(pushs);
-      }
-      else {
-        pagination.setContent(result);
-      }
-    }
-
+    pagination.setContent(pushs);
+//    if(org.springframework.util.StringUtils.isEmpty(params.get("pushType"))
+//        || Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.IMMEDIATE) {
+//      pagination.setContent(pushs);
+//    }
+//    else {
+//      int flag = 0;
+//      for(Iterator<Push> iterator = pushs.iterator(); iterator.hasNext();) {
+//        Push push = iterator.next();
+//        if(Consts.PUSH_TYPE.valueOf(params.get("pushType").toString()) == Consts.PUSH_TYPE.TIMING) {
+//          try {
+//            Map<String, String> map = this.postGetTriggerInfo(push.getId());
+//            if(map != null) {
+//              push.setTirggerName(map.get("name"));
+//              push.setStartTime(map.get("startTime"));
+//              push.setPreviousFireTime(map.get("previousFireTime"));
+//              push.setNextFireTime(map.get("nextFireTime"));
+//              if(org.springframework.util.StringUtils.isEmpty(map.get("nextFireTime"))){
+//                push.setJobState(PUSH_JOB_STATE.DISABLE);
+//                push.setJobState(PUSH_JOB_STATE.DISABLE);
+//                this.updateJobStateById(push);
+//              }
+//              push.setCronExpression(map.get("cronExpression"));
+//            }
+//          }
+//          catch(Exception e) {
+//            flag = 1;
+//            logger.error("get job info failed :" + e.getMessage());
+//            break;
+//          }
+//        }
+//        result.add(push);
+//      }
+//      if(flag == 1) {
+//        pagination.setContent(pushs);
+//      }
+//      else {
+//        pagination.setContent(result);
+//      }
+//    }
     return pagination;
   }
 
@@ -355,8 +372,9 @@ public class PushServiceImpl implements PushService {
   @Override
   public void updateJobStateById(Push push) {
     try {
-      mongoTemplate.updateFirst(new Query().addCriteria(new Criteria("id").is(push.getId())),
-          new Update().set("jobState", push.getJobState()), Push.class);
+//      mongoTemplate.updateFirst(new Query().addCriteria(new Criteria("id").is(push.getId())),
+//          new Update().set("jobState", push.getJobState()), Push.class);
+      mongoTemplate.save(push);
     }
     catch(Exception e) {
       logger.error("update send state erro" + e.getMessage());
@@ -367,12 +385,6 @@ public class PushServiceImpl implements PushService {
     Push push = new Push();
     push.setId(id);
     mongoTemplate.remove(push);
-  }
-
-  @Override
-  public void modifyPush(Push push) throws Exception {
-    this.updatePush(push);
-    this.modifyJob(push.getId(), push.getCronExp());
   }
 
   @Override

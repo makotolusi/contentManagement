@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -133,7 +134,6 @@ public class PushController {
         clientType.add(push.getClientType());
       for(Iterator iterator = clientType.iterator(); iterator.hasNext();) {
         CLIENT_TYPE client_TYPE = (CLIENT_TYPE) iterator.next();
-        push.setId(null);
         push.setClientType(client_TYPE);
         if(push.getKeyValue() != null) {
           ContentType contentType = contentTypeService.getByIndex(push.getKeyValue().get("p"));
@@ -151,51 +151,51 @@ public class PushController {
           push.setUserScope(PUSH_USER_SCOPE.TAG);
         }
         push.setSendState(PUSH_SEND_STATE.FAIL);
-        String pushId = pushService.createPush(push);
-        push.setId(pushId);
-        if(pushId == null) {
-          logger.error("insert push object failed!!");
-          model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString());
-          return model;
-        }
-        else {
-          switch(push.getPushType()) {
-            case IMMEDIATE :
-//              push = pushService.pushInfo(push);
-              if(push.getSendState() == PUSH_SEND_STATE.FAIL)
-                model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " msg : " + push.getSentLogs());
-              else {
-                pushService.updateSendStateById(push);
-                model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-              }
-              break;
-            case TIMING :
-              // 调用cms-job创建新quartz任务
-              JSONObject obj = pushService.postNewJob(push.getId(), push.getCronExp());
-              if(obj.getBoolean("success")) {
-                push.setJobState(PUSH_JOB_STATE.ENABLE);
-                pushService.updateJobStateById(push);
-                response.setStatus(HttpServletResponse.SC_OK);
-                model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-              }
-              else {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                model.put("message", obj.getString("msg"));
-              }
-              break;
-            case AUTO :
+        switch(push.getPushType()) {
+          case IMMEDIATE :
+             pushService.createPush(push);
+            // push = pushService.pushInfo(push);
+            if(push.getSendState() == PUSH_SEND_STATE.FAIL)
+              model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " msg : " + push.getSentLogs());
+            else {
               model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-              break;
-            default :
-              break;
-          }
-
+            }
+            break;
+          case TIMING :
+            JSONObject obj = null;
+            if(StringUtils.isEmpty(push.getId())) {//insert
+              pushService.savePush(push);
+              // 调用cms-job创建新quartz任务
+              obj = pushService.postNewJob(push.getId(), push.getCronExp());
+            }else{
+              obj = pushService.modifyJob(push.getId(), push.getCronExp());
+            }
+            if(obj.getBoolean("success")) {
+              obj = (JSONObject) obj.getJSONArray("triggers").get(0);
+              push.setJobState(PUSH_JOB_STATE.ENABLE);
+              push.setNextFireTime(obj.getString("nextFireTime"));
+              push.setStartTime(obj.getString("startTime"));
+              push.setPreviousFireTime(obj.getString("previousFireTime"));
+              response.setStatus(HttpServletResponse.SC_OK);
+              model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+            }
+            else {
+              push.setJobState(PUSH_JOB_STATE.DISABLE);
+              response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+              model.put("message", obj.getString("msg"));
+            }
+            break;
+          default :
+            break;
         }
+        pushService.savePush(push);
       }
     }
     catch(Exception e) {
       e.printStackTrace();
       logger.error("push  failed!!");
+      push.setJobState(PUSH_JOB_STATE.DISABLE);
+      pushService.savePush(push);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return model;
     }
@@ -243,51 +243,53 @@ public class PushController {
     return model;
   }
 
-//  /**
-//   * 再次发送(默认类型是立即发送的推送任务)
-//   * 
-//   * @param push
-//   *          推送对象实例
-//   * @param model
-//   * @return
-//   */
-//  @RequestMapping(value = "sendAgain", method = RequestMethod.POST)
-//  @ResponseBody
-//  public ModelMap sendAgain(@RequestBody
-//  Push push, ModelMap model) {
-//    if(push.getContentTy() != null) push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
-//    if(!push.getTags().isEmpty()) {
-//      push.setUserScope(PUSH_USER_SCOPE.TAG);
-//    }
-//    // 立即推送
-//    if(push.getPushType() == PUSH_TYPE.AUTO) {
-//      pushService.updatePush(push);
-//      model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-//      return model;
-//    }
-//    else {
-//      push = pushService.pushInfo(push);
-//      try {
-//        push.setId(null);
-//        String pushId = pushService.createPush(push);
-//        push.setId(pushId);
-//        if(push.getSendState() == PUSH_SEND_STATE.FAIL) {
-//          model.put("message", push.getSentLogs());
-//        }
-//        else {
-//          model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-//        }
-//        return model;
-//      }
-//      catch(Exception e) {
-//        e.printStackTrace();
-//        logger.error("insert push object failed!!");
-//        model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " " + e.getMessage());
-//        return model;
-//      }
-//    }
-//
-//  }
+  // /**
+  // * 再次发送(默认类型是立即发送的推送任务)
+  // *
+  // * @param push
+  // * 推送对象实例
+  // * @param model
+  // * @return
+  // */
+  // @RequestMapping(value = "sendAgain", method = RequestMethod.POST)
+  // @ResponseBody
+  // public ModelMap sendAgain(@RequestBody
+  // Push push, ModelMap model) {
+  // if(push.getContentTy() != null)
+  // push.setContentType(COLLECTION_ITEM_TYPE.valueOf(push.getContentTy()));
+  // if(!push.getTags().isEmpty()) {
+  // push.setUserScope(PUSH_USER_SCOPE.TAG);
+  // }
+  // // 立即推送
+  // if(push.getPushType() == PUSH_TYPE.AUTO) {
+  // pushService.updatePush(push);
+  // model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+  // return model;
+  // }
+  // else {
+  // push = pushService.pushInfo(push);
+  // try {
+  // push.setId(null);
+  // String pushId = pushService.createPush(push);
+  // push.setId(pushId);
+  // if(push.getSendState() == PUSH_SEND_STATE.FAIL) {
+  // model.put("message", push.getSentLogs());
+  // }
+  // else {
+  // model.put("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+  // }
+  // return model;
+  // }
+  // catch(Exception e) {
+  // e.printStackTrace();
+  // logger.error("insert push object failed!!");
+  // model.put("message", Constants.CUSTOM_ERROR_CODE.FAILED.toString() + " " +
+  // e.getMessage());
+  // return model;
+  // }
+  // }
+  //
+  // }
 
   /**
    * 修改定时推送任务信息
