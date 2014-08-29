@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cyou.video.mobile.server.cms.common.Consts;
 import com.cyou.video.mobile.server.cms.model.security.ManageItem;
+import com.cyou.video.mobile.server.cms.model.security.Manager;
 import com.cyou.video.mobile.server.cms.service.security.ManageItemService;
 import com.cyou.video.mobile.server.common.Constants;
 import com.cyou.video.mobile.server.common.utils.JacksonUtil;
@@ -38,10 +42,13 @@ public class ManageItemController {
 
   @RequestMapping(value = "/list", method = RequestMethod.POST)
   @ResponseBody
-  public ModelMap listManageItem(ModelMap model) {
+  public ModelMap listManageItem(ModelMap model,HttpServletRequest request) {
     try {
-      List<ManageItem> itemList = manageItemService.listManageItem();
-      model.addAttribute("children", itemList);
+      Manager m=(Manager)request.getSession().getAttribute(Consts.SESSION_MANAGER);
+      if(m==null)
+        model.addAttribute("children", null);
+      else
+        model.addAttribute("children", manageItemService.listByRole(m));
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {

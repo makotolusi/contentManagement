@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.cyou.video.mobile.server.cms.model.security.ManageItem;
+import com.cyou.video.mobile.server.cms.model.security.Manager;
 
 /**
  * CMS管理项业务接口
@@ -16,7 +17,7 @@ public interface ManageItemService {
    * @return 管理项列表
    * @throws Exception
    */
-  public List<ManageItem> listManageItem() throws Exception;
+  public List<ManageItem> listByRole(Manager sessionManager) throws Exception;
 
   /**
    * 创建管理项

@@ -1,5 +1,7 @@
 package com.cyou.video.mobile.server.cms.service.security.impl;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +19,9 @@ import com.cyou.video.mobile.server.cms.model.Pagination;
 import com.cyou.video.mobile.server.cms.model.VerifyException;
 import com.cyou.video.mobile.server.cms.model.security.Manager;
 import com.cyou.video.mobile.server.cms.model.security.Operation;
+import com.cyou.video.mobile.server.cms.model.security.Role;
 import com.cyou.video.mobile.server.cms.service.security.ManagerService;
+import com.cyou.video.mobile.server.cms.service.security.OperationService;
 import com.cyou.video.mobile.server.common.Constants;
 import com.cyou.video.mobile.server.common.utils.SecurityUtil;
 
@@ -32,6 +36,9 @@ public class ManagerServiceImpl implements ManagerService {
   @Autowired
   private MongoOperations mongoTemplate;
 
+  @Autowired
+  OperationService operationService;
+  
   @Override
   public int createManager(Manager manager) throws Exception {
     if(StringUtils.isEmpty(manager.getId())) {
@@ -53,67 +60,63 @@ public class ManagerServiceImpl implements ManagerService {
     return 0;
   }
 
+  public Manager findOne(Manager manager) throws Exception {
+     return mongoTemplate.findOne(new Query(new Criteria("username").is(manager.getUsername())), Manager.class);
+  }
   @Override
   public List<Operation> login(Manager manager, HttpServletRequest request) throws Exception {
-    // List<Operation> list = null;
-    // if(manager == null) {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_manager");
-    // }
-    // if(StringUtils.isBlank(manager.getUsername())) {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() +
-    // "_manager.username");
-    // }
-    // if(StringUtils.isBlank(manager.getPassword())) {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() +
-    // "_manager.password");
-    // }
-    // if(request == null) {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_request");
-    // }
-    // //查找是否存在指定名称的管理员
-    // Manager reference = managerDao.getManager(manager.getUsername());
-    // if(reference == null) {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.toString() + "_manager");
-    // }
-    // if(reference.getPassword().equals(SecurityUtil.encryptMD5(manager.getPassword())))
-    // { //判断登录密码是否正确
-    // if(reference.getStatus() == Constants.STATUS.ON.getValue()) {
-    // //判断管理员的状态是否可用
-    // list = operationDao.listOperationByManager(reference.getId());
-    // //查询当前管理员的所有操作项
-    // if(list != null && list.size() > 0) {
-    // request.getSession().setAttribute(Consts.SESSION_MANAGER, reference);
-    // }
-    // else {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.toString() + "_operation");
-    // }
-    // }
-    // else {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.toString() +
-    // "_manager.status");
-    // }
-    // }
-    // else {
-    // throw new
-    // VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.getValue(),
-    // Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.toString() +
-    // "_manager.password");
-    // }
-    return null;
+    List<Operation> list = null;
+    if(manager == null) {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
+          Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_manager");
+    }
+    if(StringUtils.isEmpty(manager.getUsername())) {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
+          Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_manager.username");
+    }
+    if(StringUtils.isEmpty(manager.getPassword())) {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
+          Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_manager.password");
+    }
+    if(request == null) {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.getValue(),
+          Constants.CUSTOM_ERROR_CODE.PARAMATER_MISSING.toString() + "_request");
+    }
+    // 查找是否存在指定名称的管理员
+    Manager reference = this.findOne(manager);
+    if(reference == null) {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.getValue(),"账号或密码有误！");
+    }
+    if(reference.getPassword().equals(SecurityUtil.encryptMD5(manager.getPassword()))) { // 判断登录密码是否正确
+      if(reference.getStatus() == Constants.STATUS.ON) {
+        // 判断管理员的状态是否可用
+        List<Role> roles= reference.getRoles();
+        List<String> roleids=new ArrayList<String>();
+        for(Iterator iterator = roles.iterator(); iterator.hasNext();) {
+          Role role = (Role) iterator.next();
+          roleids.add(role.getId());
+        }
+        reference.setRoleids(roleids);
+        list = operationService.listOperationOfRole(roleids, 0);
+        // 查询当前管理员的所有操作项
+        if(list != null && list.size() > 0) {
+          request.getSession().setAttribute(Consts.SESSION_MANAGER, reference);
+        }
+        else {
+          throw new VerifyException(Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.getValue(),
+              Constants.CUSTOM_ERROR_CODE.OBJECT_NOT_FOUND.toString() + "_operation");
+        }
+      }
+      else {
+        throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.getValue(),
+            Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.toString() + "_manager.status");
+      }
+    }
+    else {
+      throw new VerifyException(Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.getValue(),
+          Constants.CUSTOM_ERROR_CODE.PARAMATER_INVALID.toString() + "_manager.password");
+    }
+    return list;
   }
 
   @Override

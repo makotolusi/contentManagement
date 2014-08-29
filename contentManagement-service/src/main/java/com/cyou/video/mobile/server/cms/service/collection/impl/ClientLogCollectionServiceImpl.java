@@ -202,13 +202,10 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
   public Pagination getClientLogCollection(Map<String, Object> params) throws Exception {
     Pagination pagination = null;
     pagination = new Pagination();
-    int curPage = Integer.parseInt(params.get("curPage").toString());
-    int pageSize = Integer.parseInt(params.get("pageSize").toString());
+    int curPage = Integer.parseInt(params.get("start").toString());
+    int pageSize =Integer.parseInt(params.get("limit").toString());
     pagination.setCurPage(curPage);
     pagination.setPageSize(pageSize);
-    curPage = (curPage - 1) * pageSize;
-    params.remove("curPage");
-    params.put("curPage", curPage);
     List<ClientLogCollection> list = getClientCollection(null, curPage, pageSize, params);
     pagination.setRowCount(9999);
     for(Iterator iterator = list.iterator(); iterator.hasNext();) {
@@ -232,9 +229,7 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
     query.limit(size);
     query.skip(page);
     query.with(new Sort(Sort.Direction.DESC, "uploadDate"));
-
     query(params, query, "");
-
     return mongoTemplate.find(query, ClientLogCollection.class);
   }
 
@@ -345,18 +340,12 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
   @Override
   public Pagination getPVByName(Map<String, Object> params) throws Exception {
     Pagination pagination = new Pagination();
-    int curPage = Integer.parseInt(params.get("curPage").toString());
-    int pageSize = Pagination.PAGESIZE;
-    if(params.get("pageSize") != null) {
-      pageSize = Integer.parseInt(params.get("pageSize").toString());
-    }
+    int curPage = Integer.parseInt(params.get("start").toString());
+    int pageSize =Integer.parseInt(params.get("limit").toString());
     pagination.setCurPage(curPage);
-    pagination.setPageSize(pageSize);
-    curPage = (curPage - 1) * pageSize;
-    params.remove("curPage");
-    params.put("curPage", curPage);
     String collectionName = params.get("collectionName").toString();
     List<UserItemOperatePvMongo2> list = getPVByName(collectionName, curPage, pageSize, params);
+    List<ClientLogCollection> result=new ArrayList<ClientLogCollection>();
     for(Iterator iterator = list.iterator(); iterator.hasNext();) {
       UserItemOperatePvMongo2 userItemOperatePvMongo2 = (UserItemOperatePvMongo2) iterator.next();
       ClientLogCollection clientLogCollection = userItemOperatePvMongo2.getValue();
@@ -366,9 +355,15 @@ public class ClientLogCollectionServiceImpl implements ClientLogCollectionServic
       }
       if(id.getOtherWay() != null && id.getOtherWay() != -1)
         id.setOtherWayE(COLLECTION_ITEM_TYPE.values()[id.getOtherWay()].getName());
+      clientLogCollection.setServiceId(id.getServiceId());
+      clientLogCollection.setOperatorType(clientLogCollection.getOperatorType()==null?id.getOperatorType():clientLogCollection.getOperatorType());
+      clientLogCollection.setOtherWay(clientLogCollection.getOtherWay()==null?id.getOtherWay():clientLogCollection.getOtherWay());
+      clientLogCollection.setUid(clientLogCollection.getUid()==null?id.getUid():clientLogCollection.getUid());
+      clientLogCollection.setKeyWord(clientLogCollection.getKeyWord()==null?id.getKeyWord():clientLogCollection.getKeyWord());
+      result.add(clientLogCollection);
     }
     pagination.setRowCount(9999);
-    pagination.setContent(list);
+    pagination.setContent(result);
     return pagination;
   }
 

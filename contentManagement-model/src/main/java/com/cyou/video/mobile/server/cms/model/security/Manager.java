@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -19,62 +20,65 @@ import com.cyou.video.mobile.server.common.Constants;
 @Document(collection = "Security_Manager")
 public class Manager {
 
-	private static final long serialVersionUID = -79915748798890256L;
+  private static final long serialVersionUID = -79915748798890256L;
 
   @Id
   private String id; // 管理员id
 
-	private String username; // 登录用户名
+  private String username; // 登录用户名
 
-	private String password; // 登录密码
+  private String password; // 登录密码
 
-	private String email; // 邮箱地址
+  private String email; // 邮箱地址
 
-	private  Constants.STATUS status = Constants.STATUS.ON; // 管理员状态
+  private Constants.STATUS status = Constants.STATUS.ON; // 管理员状态
 
-	@DBRef
-  private List<Role> roles=new ArrayList<Role>();
-	
-	public String getId() {
-		return id;
-	}
+  @DBRef
+  private List<Role> roles = new ArrayList<Role>();
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  @Transient
+  List<String> roleids;
 
-	public String getUsername() {
-		return username;
-	}
+  public String getId() {
+    return id;
+  }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  public void setId(String id) {
+    this.id = id;
+  }
 
-	public String getPassword() {
-		return password;
-	}
+  public String getUsername() {
+    return username;
+  }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-	public String getEmail() {
-		return email;
-	}
+  public String getPassword() {
+    return password;
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-	public Constants.STATUS getStatus() {
-		return status;
-	}
+  public String getEmail() {
+    return email;
+  }
 
-	public void setStatus(Constants.STATUS status) {
-		this.status = status;
-	}
-	
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public Constants.STATUS getStatus() {
+    return status;
+  }
+
+  public void setStatus(Constants.STATUS status) {
+    this.status = status;
+  }
+
   public List<Role> getRoles() {
     return roles;
   }
@@ -82,16 +86,23 @@ public class Manager {
   public void setRoles(List<Role> roles) {
     this.roles = roles;
   }
+  
+  public List<String> getRoleids() {
+    return roleids;
+  }
+
+  public void setRoleids(List<String> roleids) {
+    this.roleids = roleids;
+  }
 
   public String toString() {
-		ToStringBuilder builder = new ToStringBuilder(this,
-				ToStringStyle.DEFAULT_STYLE);
-		builder.append("id", id);
-		builder.append("username", username);
-		builder.append("password", password);
-		builder.append("email", email);
-		builder.append("status", status);
-		return builder.toString();
-	}
+    ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE);
+    builder.append("id", id);
+    builder.append("username", username);
+    builder.append("password", password);
+    builder.append("email", email);
+    builder.append("status", status);
+    return builder.toString();
+  }
 
 }

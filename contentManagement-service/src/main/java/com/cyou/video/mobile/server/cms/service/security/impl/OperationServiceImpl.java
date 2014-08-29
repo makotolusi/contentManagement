@@ -41,7 +41,7 @@ public class OperationServiceImpl implements OperationService {
   }
 
   @Override
-  public List<Operation> listOperationOfRole(String roleId, int out) throws Exception {
+  public List<Operation> listOperationOfRole(List<String>  roleId, int out) throws Exception {
     Query q = null;
     if(out == 1)
       q = new Query(new Criteria("roleIds").nin(roleId));

@@ -30,7 +30,7 @@ import com.cyou.video.mobile.server.common.Constants.SDF;
  * @author LUSI
  */
 @Controller
-@RequestMapping("/web/activity/pv")
+@RequestMapping("/web/collection")
 public class PVController {
 
   private Logger logger = LoggerFactory.getLogger(PVController.class);
@@ -66,29 +66,13 @@ public class PVController {
   Map<String, Object> params, ModelMap model) {
     try {
       params.put("pageSize", Pagination.PAGESIZE);
-      Pagination pagination = clientLogCollectionService.getClientLogCollection(params);
-      model.addAttribute("total", clientLogCollectionService.getTotalNum(Consts.COLLECTION_CLIENT_LOG_NAME));
-      model.addAttribute("page", pagination);
-      model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
-    }
-    catch(Exception e) {
-      logger.error("[method: listPush()] Get Push list : error! " + e.getMessage(), e);
-      model.addAttribute("message", e.getMessage());
-      e.printStackTrace();
-    }
-    return model;
-  }
-
-  @RequestMapping(value = "/listPvCollection", method = RequestMethod.POST)
-  @ResponseBody
-  public ModelMap listPvCollection(@RequestBody
-  Map<String, Object> params, ModelMap model) {
-    try {
-      Pagination pagination = clientLogCollectionService.getPVByName(params);
       String collectionName = params.get("collectionName").toString();
+      if("ClientLogCollection".equals(collectionName)){
+        model.addAttribute("page",  clientLogCollectionService.getClientLogCollection(params));
+      }else{
+        model.addAttribute("page",   clientLogCollectionService.getPVByName(params));
+      }
       model.addAttribute("total", clientLogCollectionService.getTotalNum(collectionName));
-      model.addAttribute("page", pagination);
-
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
@@ -98,6 +82,28 @@ public class PVController {
     }
     return model;
   }
+
+  // @RequestMapping(value = "/listPvCollection", method = RequestMethod.POST)
+  // @ResponseBody
+  // public ModelMap listPvCollection(@RequestBody
+  // Map<String, Object> params, ModelMap model) {
+  // try {
+  // Pagination pagination = clientLogCollectionService.getPVByName(params);
+  // String collectionName = params.get("collectionName").toString();
+  // model.addAttribute("total",
+  // clientLogCollectionService.getTotalNum(collectionName));
+  // model.addAttribute("page", pagination);
+  // model.addAttribute("message",
+  // Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+  // }
+  // catch(Exception e) {
+  // logger.error("[method: listPush()] Get Push list : error! " +
+  // e.getMessage(), e);
+  // model.addAttribute("message", e.getMessage());
+  // e.printStackTrace();
+  // }
+  // return model;
+  // }
 
   @RequestMapping(value = "/listTagNameAndPV", method = RequestMethod.POST)
   @ResponseBody

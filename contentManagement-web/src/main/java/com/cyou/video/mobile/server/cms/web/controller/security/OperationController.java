@@ -1,5 +1,6 @@
 package com.cyou.video.mobile.server.cms.web.controller.security;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +57,9 @@ public class OperationController {
   String roleId, @RequestParam
   Integer out, HttpServletRequest request, ModelMap model) {
     try {
-      List<Operation> list = operationService.listOperationOfRole(roleId, out);
+      List<String> roleIds = new ArrayList<String>();
+      roleIds.add(roleId);
+      List<Operation> list = operationService.listOperationOfRole(roleIds, out);
       model.addAttribute("data", list);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }

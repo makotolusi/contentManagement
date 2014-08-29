@@ -25,6 +25,9 @@ public class ConfigApps {
   @DBRef
   private List<ContentType> tag;// 打tag
 
+  @DBRef
+  private List<ConfigCollections> collection;// collection
+  
   public String getId() {
     return id;
   }
@@ -71,6 +74,14 @@ public class ConfigApps {
 
   public void setTag(List<ContentType> tag) {
     this.tag = tag;
+  }
+
+  public List<ConfigCollections> getCollection() {
+    return collection;
+  }
+
+  public void setCollection(List<ConfigCollections> collection) {
+    this.collection = collection;
   }
 
 }
