@@ -90,14 +90,7 @@ public class ManagerServiceImpl implements ManagerService {
     if(reference.getPassword().equals(SecurityUtil.encryptMD5(manager.getPassword()))) { // 判断登录密码是否正确
       if(reference.getStatus() == Constants.STATUS.ON) {
         // 判断管理员的状态是否可用
-        List<Role> roles= reference.getRoles();
-        List<String> roleids=new ArrayList<String>();
-        for(Iterator iterator = roles.iterator(); iterator.hasNext();) {
-          Role role = (Role) iterator.next();
-          roleids.add(role.getId());
-        }
-        reference.setRoleids(roleids);
-        list = operationService.listOperationOfRole(roleids, 0);
+        list = getOperationOfManager(reference);
         // 查询当前管理员的所有操作项
         if(list != null && list.size() > 0) {
           request.getSession().setAttribute(Consts.SESSION_MANAGER, reference);
@@ -119,6 +112,34 @@ public class ManagerServiceImpl implements ManagerService {
     return list;
   }
 
+  @Override
+  public List<Operation> getOperationOfManager(Manager manager) throws Exception {
+    List<Operation> list;
+    List<Role> roles= manager.getRoles();
+    List<String> roleids=new ArrayList<String>();
+    for(Iterator iterator = roles.iterator(); iterator.hasNext();) {
+      Role role = (Role) iterator.next();
+      roleids.add(role.getId());
+    }
+    manager.setRoleids(roleids);
+    list = operationService.listOperationOfRole(roleids, 0);
+    return list;
+  }
+
+
+  @Override
+  public boolean containsOperationOfRoles(Manager manager,String operation) throws Exception {
+    List<Operation> list;
+    List<Role> roles= manager.getRoles();
+    List<String> roleids=new ArrayList<String>();
+    for(Iterator iterator = roles.iterator(); iterator.hasNext();) {
+      Role role = (Role) iterator.next();
+      roleids.add(role.getId());
+    }
+    manager.setRoleids(roleids);
+    return operationService.containsOperationOfRoles(roleids, operation);
+  }
+  
   @Override
   public void editPassword(String password, HttpServletRequest request) throws Exception {
     if(StringUtils.isEmpty(password)) {

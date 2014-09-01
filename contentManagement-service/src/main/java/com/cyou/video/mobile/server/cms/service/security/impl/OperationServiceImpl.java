@@ -41,7 +41,7 @@ public class OperationServiceImpl implements OperationService {
   }
 
   @Override
-  public List<Operation> listOperationOfRole(List<String>  roleId, int out) throws Exception {
+  public List<Operation> listOperationOfRole(List<String> roleId, int out) throws Exception {
     Query q = null;
     if(out == 1)
       q = new Query(new Criteria("roleIds").nin(roleId));
@@ -53,6 +53,17 @@ public class OperationServiceImpl implements OperationService {
     }
     else if(out == 3) q = new Query();
     return mongoTemplate.find(q, Operation.class);
+  }
+
+  @Override
+  public boolean containsOperationOfRoles(List<String> roleId, String operation) throws Exception {
+    Query q = new Query(new Criteria("roleIds").all(roleId).and("url").is(operation));
+    List l= mongoTemplate.find(q, Operation.class);
+    if(l==null||l.isEmpty()){
+      return false;
+    }else{
+      return true;
+    }
   }
 
   @Override

@@ -44,21 +44,21 @@ public class ManagerController {
   @RequestMapping(value = "/login", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap login(@RequestBody
-  Manager manager, HttpServletRequest request,HttpServletResponse response, ModelMap model) {
+  Manager manager, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
       List<Operation> operations = managerService.login(manager, request);
       if(operations != null && operations.size() > 0) { // 如果获取操作项列表并登录成功
-      // List<ManageItem> itemList = manageItemService.listManageItem();
-      // if(itemList != null && itemList.size() > 0) { // 如果获取管理项成功
-      // view = new ModelAndView("/ui/index"); // 跳转到欢迎页面
-      // view.addObject("operations",
-      // JacksonUtil.getJsonMapper().writeValueAsString(operations));
-      // view.addObject("manageItems",
-      // JacksonUtil.getJsonMapper().writeValueAsString(itemList));
-      // }
-      // else {
-      // view = new ModelAndView("/login").addObject("message", "加载管理项失败");
-      // }
+        // List<ManageItem> itemList = manageItemService.listManageItem();
+        // if(itemList != null && itemList.size() > 0) { // 如果获取管理项成功
+        // view = new ModelAndView("/ui/index"); // 跳转到欢迎页面
+        // view.addObject("operations",
+        // JacksonUtil.getJsonMapper().writeValueAsString(operations));
+        // view.addObject("manageItems",
+        // JacksonUtil.getJsonMapper().writeValueAsString(itemList));
+        // }
+        // else {
+        // view = new ModelAndView("/login").addObject("message", "加载管理项失败");
+        // }
       }
       else {
         // view = new ModelAndView("/login").addObject("message", "加载操作项失败");
@@ -70,15 +70,70 @@ public class ManagerController {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       model.put("msg", e.getMessage());
       logger.error("[method: login()] Manager login : error! " + e.getMessage(), e);
-//      e.printStackTrace();
+      // e.printStackTrace();
     }
     return model;
   }
 
-  @RequestMapping(value = "/logout", method = RequestMethod.GET)
-  public ModelAndView logout(HttpServletRequest request) {
+  @RequestMapping(value = "/isLogin", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap isLogin(@RequestBody
+  Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
+    try {
+      Manager manager = (Manager) request.getSession().getAttribute(Consts.SESSION_MANAGER);
+      if(manager == null) {
+        model.put("SUC", false);
+        model.put("msg", "您尚未登录系统，请重新登录！");
+      }else{
+        model.put("SUC", true);
+      }
+      response.setStatus(HttpServletResponse.SC_OK);
+    }
+    catch(Exception e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      model.put("msg", e.getMessage());
+      logger.error("[method: login()] Manager login : error! " + e.getMessage(), e);
+      e.printStackTrace();
+    }
+    return model;
+  }
+  
+  @RequestMapping(value = "/handleRoute", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap handleRoute(@RequestBody
+  Map<String, Object> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
+    try {
+      Manager manager = (Manager) request.getSession().getAttribute(Consts.SESSION_MANAGER);
+      if(manager == null) {
+        model.put("SUC", false);
+        model.put("msg", "请先登录！");
+      }
+      else {
+        String operation = params.get("operation").toString();
+        if(managerService.containsOperationOfRoles(manager, operation)) {
+          model.put("SUC", true);
+        }
+        else {
+          model.put("SUC", false);
+          model.put("msg", "您不具有该功能权限！");
+        }
+      }
+      response.setStatus(HttpServletResponse.SC_OK);
+    }
+    catch(Exception e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      model.put("msg", e.getMessage());
+      logger.error("[method: login()] Manager login : error! " + e.getMessage(), e);
+      e.printStackTrace();
+    }
+    return model;
+  }
+
+  @RequestMapping(value = "/logout", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap logout(HttpServletRequest request, ModelMap model) {
     request.getSession().setAttribute(Consts.SESSION_MANAGER, null);
-    return new ModelAndView("/logout");
+    return model;
   }
 
   @RequestMapping(value = "/password/edit", method = RequestMethod.GET)

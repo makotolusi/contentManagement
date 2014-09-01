@@ -32,4 +32,21 @@ public interface ManagerService {
 
   void updateStatus(String managerId, Constants.STATUS status) throws Exception;
 
+  /**
+   * 管理员的操作项目
+   * @param manager
+   * @return
+   * @throws Exception
+   */
+  List<Operation> getOperationOfManager(Manager manager) throws Exception;
+
+  /**
+   * 权限里是否有这个菜单
+   * @param manager
+   * @param operation
+   * @return
+   * @throws Exception
+   */
+  boolean containsOperationOfRoles(Manager manager, String operation) throws Exception;
+
 }

@@ -66,4 +66,13 @@ public interface OperationService {
    */
   List<Operation> listOperationOfRole(List<String> roleId, int out) throws Exception;
 
+  /***
+   * 查看是否有这个菜单
+   * @param roleId
+   * @param operation
+   * @return
+   * @throws Exception
+   */
+  boolean containsOperationOfRoles(List<String> roleId, String operation) throws Exception;
+
 }
