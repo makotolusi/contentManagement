@@ -46,7 +46,7 @@ public class ManageItemController {
     try {
       Manager m=(Manager)request.getSession().getAttribute(Consts.SESSION_MANAGER);
       if(m==null)
-        model.addAttribute("children", null);
+        model.addAttribute("children", manageItemService.list());
       else
         model.addAttribute("children", manageItemService.listByRole(m));
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());

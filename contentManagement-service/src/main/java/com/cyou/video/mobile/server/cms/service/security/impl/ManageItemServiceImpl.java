@@ -66,6 +66,10 @@ public class ManageItemServiceImpl implements ManageItemService {
     return result;
   }
 
+  @Override
+  public List<ManageItem> list() throws Exception {
+    return mongoTemplate.find(new Query(), ManageItem.class);
+  }
   //
   @Override
   public void createManageItem(ManageItem manageItem) throws Exception {

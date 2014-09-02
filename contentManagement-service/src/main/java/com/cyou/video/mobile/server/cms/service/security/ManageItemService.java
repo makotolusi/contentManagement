@@ -27,6 +27,13 @@ public interface ManageItemService {
    */
   public void createManageItem(ManageItem manageItem) throws Exception;
 
+  /**
+   * 
+   * @return
+   * @throws Exception
+   */
+  List<ManageItem> list() throws Exception;
+
 //  /**
 //   * 更新管理项
 //   * @param manageItem 管理项

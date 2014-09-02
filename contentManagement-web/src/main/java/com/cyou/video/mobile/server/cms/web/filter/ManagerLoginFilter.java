@@ -33,7 +33,6 @@ public class ManagerLoginFilter implements Filter {
     HttpSession session = request.getSession();
     String uri = request.getRequestURI();
     String referer = request.getHeader("referer");
-    System.out.println(referer);
     // if(uri.equals(request.getContextPath() + "/web") ||
     // uri.equals(request.getContextPath() + "/web/manager/login") ||
     // uri.equals(request.getContextPath() + "/web/manager/logout")) {
@@ -45,11 +44,11 @@ public class ManagerLoginFilter implements Filter {
 //       "/web/manager/logout");
 //      return;
 //    }
-    if(referer == null) {
-      // response.sendRedirect(request.getContextPath() +
-      // "/web/manager/logout");
-      return;
-    }
+//    if(referer == null) {
+//      // response.sendRedirect(request.getContextPath() +
+//      // "/web/manager/logout");
+//      return;
+//    }
     filterChain.doFilter(request, response);
     return;
   }
