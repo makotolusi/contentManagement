@@ -16,7 +16,7 @@ public interface AutoPushService {
    * @param COLLECTION_ITEM_TYPE 推送内容类型
    * @return
    */
-  public boolean autoPush(String gameCode, String id, String title, COLLECTION_ITEM_TYPE itemType,CLIENT_TYPE ct);
+  public boolean autoPush(String tag, String id, String title, COLLECTION_ITEM_TYPE itemType,CLIENT_TYPE ct);
 
   /**
    * 意见反馈

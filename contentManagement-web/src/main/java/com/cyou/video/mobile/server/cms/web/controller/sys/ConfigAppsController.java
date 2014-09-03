@@ -2,6 +2,7 @@ package com.cyou.video.mobile.server.cms.web.controller.sys;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cyou.video.mobile.server.cms.common.Consts;
+import com.cyou.video.mobile.server.cms.model.security.Manager;
 import com.cyou.video.mobile.server.cms.model.sys.ConfigApps;
 import com.cyou.video.mobile.server.cms.service.sys.ConfigAppsService;
 import com.cyou.video.mobile.server.common.Constants;
@@ -50,10 +53,16 @@ public class ConfigAppsController {
   @RequestMapping(value = "/findByAppid", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap findByAppid(@RequestBody
-  Map<String, Object> params, ModelMap model) {
+  Map<String, Object> params, ModelMap model, HttpServletRequest request) {
     try {
-      model.addAttribute("app", configAppsService.findByAppid(Integer.parseInt(params.get("appId").toString())));
-      model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+      Manager manager = (Manager) request.getSession().getAttribute(Consts.SESSION_MANAGER);
+      if(manager == null) {
+        model.put("SUC", false);
+        model.put("message", "您尚未登录系统，请重新登录！");
+      }else{
+        model.addAttribute("app", configAppsService.findByAppid(manager.getAppId()));
+        model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
+      }
     }
     catch(Exception e) {
       logger.error("[method: list()] Get contentType log list : error!" + e.getMessage(), e);

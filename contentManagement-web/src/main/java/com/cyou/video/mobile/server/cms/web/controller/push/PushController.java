@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.cyou.video.mobile.server.cms.common.Consts;
 import com.cyou.video.mobile.server.cms.common.Consts.CLIENT_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_ITEM_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.CONTENT_SOURCE;
@@ -33,6 +34,7 @@ import com.cyou.video.mobile.server.cms.common.Consts.PUSH_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_USER_SCOPE;
 import com.cyou.video.mobile.server.cms.model.Pagination;
 import com.cyou.video.mobile.server.cms.model.push.Push;
+import com.cyou.video.mobile.server.cms.model.security.Manager;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
@@ -122,8 +124,16 @@ public class PushController {
   @RequestMapping(value = "/condition", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap createPush(@RequestBody
-  Push push, HttpServletResponse response, ModelMap model) throws Exception {
+  Push push, HttpServletResponse response, ModelMap model,HttpServletRequest request) throws Exception {
     try {
+      Manager manager = (Manager) request.getSession().getAttribute(Consts.SESSION_MANAGER);
+      if(manager == null) {
+        model.put("message", "您尚未登录系统，请重新登录！");
+        return model;
+      }else{
+        push.setAppId(manager.getAppId());
+        push.setManager(manager);
+      }
       // 多选推送客户端
       List<CLIENT_TYPE> clientType = new ArrayList<CLIENT_TYPE>();
       if(push.getClientType() == CLIENT_TYPE.ALL) {
@@ -205,13 +215,20 @@ public class PushController {
   @RequestMapping(value = "/list", method = RequestMethod.POST)
   @ResponseBody
   public ModelMap list(@RequestBody
-  Map<String, Object> params, ModelMap model) {
+  Map<String, Object> params, ModelMap model,HttpServletRequest request) {
     try {
+      Manager manager = (Manager) request.getSession().getAttribute(Consts.SESSION_MANAGER);
+      if(manager == null) {
+        model.put("message", "您尚未登录系统，请重新登录！");
+      }else{
+        params.put("appId", manager.getAppId());
+      }
       Pagination pagination = pushService.listPush(params);
       model.addAttribute("page", pagination);
       model.addAttribute("message", Constants.CUSTOM_ERROR_CODE.SUCCESS.toString());
     }
     catch(Exception e) {
+      e.printStackTrace();
       logger.error("[method: listPush()] Get Push list : error! " + e.getMessage(), e);
       model.addAttribute("message", e.getMessage());
     }
@@ -310,7 +327,7 @@ public class PushController {
       push.setPushType(PUSH_TYPE.TIMING);
       Calendar c = Calendar.getInstance();
       push.setCronExp(push.getCronExp() + " " + c.get(Calendar.YEAR));
-      pushService.modifyPush(push);
+//      pushService.modifyPush(push);
       model.addAttribute("message", "SUCCESS");
     }
     catch(Exception e) {

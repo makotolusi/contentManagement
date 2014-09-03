@@ -71,6 +71,33 @@ public class PushAutoController {
   }
 
   /**
+   * 秀场
+   * 
+   * @param id
+   *          推送任务编号
+   * @param model
+   * @return
+   */
+  @RequestMapping(value = "/auto", method = RequestMethod.POST)
+  @ResponseBody
+  public ModelMap autoShow(@RequestBody
+  Map<String, Object> params, ModelMap model) {
+    try {
+      LOGGER.info("自动推送直播被调用");
+      
+      autoPushServiceImpl.autoPush(params.get("gameCode").toString(), params.get("roomId").toString(),
+          params.get("title").toString(), COLLECTION_ITEM_TYPE.LIVE, null);
+      model.addAttribute("message", "SUCCESS");
+    }
+    catch(Exception e) {
+      LOGGER.debug("delete job failed " + e.getMessage());
+      model.addAttribute("message", e.getMessage());
+    }
+
+    return model;
+  }
+  
+  /**
    * 新建礼包推送
    * 
    * @param id

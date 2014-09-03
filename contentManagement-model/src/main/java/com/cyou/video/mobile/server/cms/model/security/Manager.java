@@ -39,6 +39,9 @@ public class Manager {
   @Transient
   List<String> roleids;
 
+  @Transient
+  Integer appId;
+
   public String getId() {
     return id;
   }
@@ -86,13 +89,23 @@ public class Manager {
   public void setRoles(List<Role> roles) {
     this.roles = roles;
   }
-  
+
   public List<String> getRoleids() {
     return roleids;
   }
 
   public void setRoleids(List<String> roleids) {
     this.roleids = roleids;
+  }
+
+
+
+  public Integer getAppId() {
+    return appId;
+  }
+
+  public void setAppId(Integer appId) {
+    this.appId = appId;
   }
 
   public String toString() {

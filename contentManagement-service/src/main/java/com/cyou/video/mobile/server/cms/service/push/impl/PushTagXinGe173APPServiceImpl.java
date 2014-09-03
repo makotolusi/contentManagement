@@ -113,14 +113,18 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
                 key += uTag.getId().getOtherWay() + "_";
               }
               key += uTag.getId().getOperatorType() + "_";
-              pushTagXinGe173APPApi.activity(uTag.getId(), uTag.getValue());// 独特的活动标签方式
+              // pushTagXinGe173APPApi.activity(uTag.getId(),
+              // uTag.getValue());// 独特的活动标签方式
               ContentTypeActionAndTag actionAndTag = action.get(key);
-              if(!StringUtils.isEmpty(actionAndTag.getCondition())) {
-                Boolean f = (Boolean) SpringEl.condition(actionAndTag.getCondition(), uTag.getValue());
-                if(!f) {
-                  continue;// 表达式未通过
-                }
-              }
+              // 表达式的需求暂时没有
+              // if(!StringUtils.isEmpty(actionAndTag.getCondition())) {
+              // Boolean f = (Boolean)
+              // SpringEl.condition(actionAndTag.getCondition(),
+              // uTag.getValue());
+              // if(!f) {
+              // continue;// 表达式未通过
+              // }
+              // }
               if(actionAndTag != null) {
                 List<ContentType> tag = actionAndTag.getTags();
                 for(Iterator iterator2 = tag.iterator(); iterator2.hasNext();) {
@@ -138,16 +142,24 @@ public class PushTagXinGe173APPServiceImpl implements PushTagXinGe173APPService 
                     tag(xingeToken, actionAndTag, realTag);
                   }
                   else {// single
-                    String v = (String) SpringEl.getFieldValue(contentType.getTag(), uTag.getValue());
-                    if(v.indexOf(",") >= 0) {
-                      String[] s = v.split(",");
-                      for(int i = 0; i < s.length; i++) {// game
-                        tag(xingeToken, actionAndTag, s[i]);
-                      }
+                    String tags = "";
+                    if(StringUtils.isEmpty(contentType.getTag())) {// 没有配置标签表达式，直接打常亮
+                      tags = contentType.getTagConstant();
                     }
                     else {
-                      tag(xingeToken, actionAndTag, v);
+                      String v = (String) SpringEl.getFieldValue(contentType.getTag(), uTag.getValue());
+                      if(v.indexOf(",") >= 0) {
+                        String[] s = v.split(",");
+                        for(int i = 0; i < s.length; i++) {// game
+                          tags = s[i];
+                          if(!StringUtils.isEmpty(tags)) tag(xingeToken, actionAndTag, tags);
+                        }
+                      }
+                      else {
+                        tags = v;
+                      }
                     }
+                    if(!StringUtils.isEmpty(tags)) tag(xingeToken, actionAndTag, tags);
                   }
 
                 }

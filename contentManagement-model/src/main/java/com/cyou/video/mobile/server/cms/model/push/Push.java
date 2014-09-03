@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.cyou.video.mobile.server.cms.common.Consts.CLIENT_TYPE;
@@ -17,11 +18,12 @@ import com.cyou.video.mobile.server.cms.common.Consts.PUSH_PLATFORM_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_SEND_STATE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.PUSH_USER_SCOPE;
+import com.cyou.video.mobile.server.cms.model.security.Manager;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.common.adapter.JaxbDatetimeAdapter;
 import com.cyou.video.mobile.server.common.adapter.JaxbEnumAdapter;
 
-@Document(collection = "Push")
+@Document(collection = "Push_3.0")
 public class Push {
 
   @Id
@@ -154,6 +156,9 @@ public class Push {
 
   @Transient
   private String secretKey;
+
+  @DBRef
+  private Manager manager;
 
   /**
    * 推送第三方平台
@@ -445,6 +450,14 @@ public class Push {
    */
   public void setCronExpression(String cronExpression) {
     this.cronExpression = cronExpression;
+  }
+
+  public Manager getManager() {
+    return manager;
+  }
+
+  public void setManager(Manager manager) {
+    this.manager = manager;
   }
 
   @Override

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,6 +86,10 @@ public class ManagerController {
         model.put("SUC", false);
         model.put("msg", "您尚未登录系统，请重新登录！");
       }else{
+        if(!StringUtils.isEmpty(params.get("appId"))){
+          manager.setAppId((Integer)params.get("appId"));
+          request.getSession().setAttribute(Consts.SESSION_MANAGER, manager);
+        }
         model.put("SUC", true);
       }
       response.setStatus(HttpServletResponse.SC_OK);
@@ -97,6 +102,7 @@ public class ManagerController {
     }
     return model;
   }
+  
   
   @RequestMapping(value = "/handleRoute", method = RequestMethod.POST)
   @ResponseBody

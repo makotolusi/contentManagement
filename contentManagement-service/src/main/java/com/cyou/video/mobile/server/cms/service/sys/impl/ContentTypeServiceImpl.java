@@ -13,7 +13,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.cyou.video.mobile.server.cms.model.Pagination;
-import com.cyou.video.mobile.server.cms.model.security.ManageItem;
 import com.cyou.video.mobile.server.cms.model.sys.ContentType;
 import com.cyou.video.mobile.server.cms.model.sys.ContentTypeActionAndTag;
 import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;

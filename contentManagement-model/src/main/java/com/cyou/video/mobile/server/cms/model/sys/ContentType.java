@@ -22,6 +22,7 @@ public class ContentType {
 
   private String tag;
   
+  private String tagConstant;
   @DBRef
   private List<ContentTypeActionAndTag> action;
 
@@ -113,6 +114,14 @@ public class ContentType {
     this.tag = tag;
   }
   
+  public String getTagConstant() {
+    return tagConstant;
+  }
+
+  public void setTagConstant(String tagConstant) {
+    this.tagConstant = tagConstant;
+  }
+
   public enum CONTENT_TYPE_CATE implements IEnumDisplay {
     SERVICE("业务", 0), ACTION("行为", 1);
     public String name;

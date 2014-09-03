@@ -31,6 +31,7 @@ import com.cyou.video.mobile.server.cms.service.push.AppSelectService;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
 import com.cyou.video.mobile.server.cms.service.push.PushInterface;
 import com.cyou.video.mobile.server.cms.service.push.PushService;
+import com.cyou.video.mobile.server.cms.service.sys.ContentTypeService;
 
 /**
  * 自动推送
@@ -64,8 +65,11 @@ public class AutoPushServiceImpl implements AutoPushService {
   @Autowired
   PushTagXinGe173APPApi pushTagXinGe173APPApi;
 
+  @Autowired
+  private ContentTypeService contentTypeService;
+  
   @Override
-  public boolean autoPush(String gameCode, String id, String title, COLLECTION_ITEM_TYPE itemType, CLIENT_TYPE ct) {
+  public boolean autoPush(String tag, String id, String title, COLLECTION_ITEM_TYPE itemType, CLIENT_TYPE ct) {
     try {
       Push pushAuto = this.getAutoPushByType(itemType);
       PUSH_JOB_STATE state = pushAuto.getJobState();
@@ -88,7 +92,7 @@ public class AutoPushServiceImpl implements AutoPushService {
       }
       push.setSendState(PUSH_SEND_STATE.FAIL);
       String gameName = null;
-      Map<String, String> typeSt = pushTagXinGe173APPApi.getGameCodeTypeAndStatus(gameCode, null);
+      Map<String, String> typeSt = pushTagXinGe173APPApi.getGameCodeTypeAndStatus(tag, null);
       if(typeSt != null && !StringUtils.isEmpty(typeSt.get("name"))) {
         gameName = typeSt.get("name");
         push.setTitle(pushAuto.getTitle().replaceAll("#gameName#", typeSt.get("name")));
@@ -103,16 +107,19 @@ public class AutoPushServiceImpl implements AutoPushService {
       }
       switch(itemType) {
         case WALKTHROUGH :
-          setTag(gameCode, gameName, push, pushAuto);
+          setTag(tag, gameName, push, pushAuto);
           break;
         case LIVE :
-          setTag(gameCode + "_" + COLLECTION_ITEM_TYPE.LIVE.index, gameName, push, pushAuto);
+          setTag(tag + "_" + COLLECTION_ITEM_TYPE.LIVE.index, gameName, push, pushAuto);
+          break;
+        case SHOW :
+          setTag(tag + "_" + COLLECTION_ITEM_TYPE.SHOW.index, gameName, push, pushAuto);
           break;
         case GIFT :
-          setTag(gameCode + "_" + COLLECTION_ITEM_TYPE.GIFT.index, gameName, push, pushAuto);
+          setTag(tag + "_" + COLLECTION_ITEM_TYPE.GIFT.index, gameName, push, pushAuto);
           break;
         case TOOL :
-          setTag(gameCode, gameName, push, pushAuto);
+          setTag(tag, gameName, push, pushAuto);
           break;
         default :
           break;
@@ -127,7 +134,7 @@ public class AutoPushServiceImpl implements AutoPushService {
         keyValue.put("p", itemType.index + "");
       keyValue.put("s", "999");
       push.setKeyValue(keyValue);
-      push.setContentType(itemType);
+      push.setContentType(contentTypeService.getByIndex(itemType.index+""));
       push.setPlatForm(PUSH_PLATFORM_TYPE.BAIDU);
       push.setAppId(pushAuto.getAppId());
       push.setPushType(PUSH_TYPE.AUTO_HISTORY);
@@ -147,7 +154,6 @@ public class AutoPushServiceImpl implements AutoPushService {
         }
 
       }
-
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -215,7 +221,7 @@ public class AutoPushServiceImpl implements AutoPushService {
       push.setClientType(CLIENT_TYPE.IOS);
     else
       push.setClientType(CLIENT_TYPE.ANDROID);
-    push.setContentType(type);
+    push.setContentType(contentTypeService.getByIndex(type.index+""));
     push.setAppId(Integer.parseInt(appId));
     push.setPushType(PUSH_TYPE.AUTO_HISTORY);
     String reply = pushAuto.getContent().replaceAll("#feedback#", content);

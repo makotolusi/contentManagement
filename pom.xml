@@ -226,6 +226,11 @@
 				<version>${mongo-java-driver.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-mongodb</artifactId>
+				<version>1.5.4.RELEASE</version>
+			</dependency>
 
 			<dependency>
 				<groupId>redis.clients</groupId>
