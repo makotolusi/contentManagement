@@ -252,7 +252,6 @@ public class XinGePush implements PushInterface {
         default :
           break;
       }
-      System.out.println(respose.toString());
       logger.info(respose.toString());
       setSuccess(push, respose);
       return push;

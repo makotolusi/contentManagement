@@ -5,17 +5,18 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cyou.video.mobile.server.cms.common.Consts.CLIENT_TYPE;
 import com.cyou.video.mobile.server.cms.common.Consts.COLLECTION_ITEM_TYPE;
 import com.cyou.video.mobile.server.cms.model.Pagination;
 import com.cyou.video.mobile.server.cms.service.push.AutoPushService;
@@ -59,7 +60,7 @@ public class PushAutoController {
     try {
       LOGGER.info("自动推送直播被调用");
       autoPushServiceImpl.autoPush(params.get("gameCode").toString(), params.get("roomId").toString(),
-          params.get("title").toString(), COLLECTION_ITEM_TYPE.LIVE, null);
+          params.get("title").toString(), COLLECTION_ITEM_TYPE.LIVE.index+"", null);
       model.addAttribute("message", "SUCCESS");
     }
     catch(Exception e) {
@@ -83,17 +84,18 @@ public class PushAutoController {
   public ModelMap autoShow(@RequestBody
   Map<String, Object> params, ModelMap model) {
     try {
-      LOGGER.info("自动推送直播被调用");
-      
-      autoPushServiceImpl.autoPush(params.get("gameCode").toString(), params.get("roomId").toString(),
-          params.get("title").toString(), COLLECTION_ITEM_TYPE.LIVE, null);
+      CLIENT_TYPE ct=null;
+      if(params.get("clientType")!=null)
+      {
+       ct= CLIENT_TYPE.valueOf(params.get("clientType").toString());
+      }
+      autoPushServiceImpl.autoPush(params.get("tag").toString(), params.get("id").toString(),
+          params.get("title").toString(), params.get("itemType").toString(), ct);
       model.addAttribute("message", "SUCCESS");
     }
     catch(Exception e) {
-      LOGGER.debug("delete job failed " + e.getMessage());
       model.addAttribute("message", e.getMessage());
     }
-
     return model;
   }
   
@@ -112,7 +114,7 @@ public class PushAutoController {
     try {
       LOGGER.info("自动推送礼包被调用");
       autoPushServiceImpl.autoPush(params.get("gameCode").toString(), params.get("id").toString(), params.get("title")
-          .toString(), COLLECTION_ITEM_TYPE.GIFT, null);
+          .toString(), COLLECTION_ITEM_TYPE.GIFT.index+"", null);
       model.addAttribute("message", "SUCCESS");
     }
     catch(Exception e) {
@@ -137,15 +139,15 @@ public class PushAutoController {
   Map<String, String> params, HttpServletRequest request, HttpServletResponse response, ModelMap model) {
     try {
       String token = params.get("token");
-      if(StringUtils.isBlank(token)) {
+      if(StringUtils.isEmpty(token)) {
         LOGGER.info("token is null bind baidu id failed!!!!! " + token);
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return model;
       }
       else {
         LOGGER.info("单播推送调用");
-        autoPushServiceImpl.pushFeedBack(token, params.get("reply"), params.get("reply"),
-            COLLECTION_ITEM_TYPE.ENCY, params.get("appId"));
+        autoPushServiceImpl.pushFeedBack(token, params.get("title"), params.get("content"),
+            params.get("itemType"), params.get("appId"));
         model.addAttribute("message", "SUCCESS");
       }
     }

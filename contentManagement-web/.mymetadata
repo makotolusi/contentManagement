@@ -3,7 +3,7 @@
   type="WEB"
   name="content management system web app"
   id="myeclipse.1373600406547"
-  context-root="/cms"
+  context-root="/push"
   j2ee-spec="6.0"
   archive="content management system web app.war">
   <attributes>
